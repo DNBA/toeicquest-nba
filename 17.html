@@ -1,0 +1,2617 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToeicQuest NBA - 全能多益備戰與季後賽爭冠系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .rainbow-glow { box-shadow: 0 0 20px rgba(236, 72, 153, 0.7), inset 0 0 10px rgba(59, 130, 246, 0.5); border-color: #ec4899 !important; }
+    .gold-glow { box-shadow: 0 0 18px rgba(245, 158, 11, 0.6), inset 0 0 8px rgba(245, 158, 11, 0.3); border-color: #f59e0b !important; }
+    .purple-glow { box-shadow: 0 0 16px rgba(168, 85, 247, 0.5), inset 0 0 6px rgba(168, 85, 247, 0.2); border-color: #a855f7 !important; }
+    .silver-black-glow {
+      box-shadow: 0 0 24px rgba(226, 232, 240, 0.8), inset 0 0 12px rgba(15, 23, 42, 0.9);
+      border-color: #e2e8f0 !important;
+      background: linear-gradient(135deg, #090d16 0%, #1e293b 50%, #020617 100%) !important;
+    }
+    @keyframes gachaGlowPulse {
+      0%, 100% { filter: brightness(1); transform: scale(1); }
+      50% { filter: brightness(1.18); transform: scale(1.025); }
+    }
+    .gacha-unrevealed { animation: gachaGlowPulse 1.35s ease-in-out infinite; }
+    .gacha-blue-glow { box-shadow: 0 0 16px rgba(59, 130, 246, 0.55), inset 0 0 8px rgba(59, 130, 246, 0.18); }
+    .gacha-normal-glow { box-shadow: 0 0 10px rgba(148, 163, 184, 0.25), inset 0 0 6px rgba(148, 163, 184, 0.08); }
+    .perspective-1000 { perspective: 1000px; }
+    .transform-style-preserve-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+    @keyframes floatCard { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
+    .card-floating { animation: floatCard 2.5s ease-in-out infinite; }
+    @keyframes packRip {
+      0% { transform: scale(1) rotate(0deg); opacity: 1; }
+      40% { transform: scale(1.08) rotate(-2deg); filter: brightness(1.5); }
+      70% { transform: scale(0.95) rotate(4deg); opacity: 0.8; }
+      100% { transform: scale(1.4) translateY(-100px); opacity: 0; }
+    }
+    .pack-ripping { animation: packRip 0.75s forwards ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-24 font-sans selection:bg-amber-500 selection:text-black">
+
+  <!-- 頂部資訊看板 -->
+  <header class="bg-slate-900/95 backdrop-blur sticky top-0 z-40 border-b border-slate-800 px-4 py-2.5">
+    <div class="max-w-5xl mx-auto flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center gap-2">
+        <i data-lucide="trophy" class="text-amber-400 w-5 h-5"></i>
+        <h1 class="text-base font-black bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 bg-clip-text text-transparent">ToeicQuest NBA</h1>
+        <span id="onFireBadge" class="hidden text-[10px] bg-amber-500/20 border border-amber-400 text-amber-300 px-2 py-0.5 rounded-full font-bold">
+          🔥 ON FIRE (+2 OVR)
+        </span>
+        <button id="adminBadge" onclick="adminUnlockAllPlayers()" class="hidden text-[10px] bg-red-600/30 hover:bg-red-600/60 border border-red-500 text-red-300 px-2 py-0.5 rounded-full font-bold font-mono transition" title="點擊一鍵獲得所有球員">
+  ⚡ ADMIN        
+</span>
+      </div>
+
+      <div class="flex items-center gap-2 text-xs">
+        <div class="flex items-center gap-1 bg-slate-800 px-2.5 py-1 rounded-full border border-slate-700">
+          <span class="text-orange-400 font-bold">🔥 <span id="streakCount">1</span>天</span>
+        </div>
+        <div class="flex items-center gap-1 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+          <i data-lucide="ticket" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span><span id="ticketCount" class="text-amber-400 font-mono font-bold">10</span>張</span>
+        </div>
+        <div class="flex items-center gap-1 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+          <i data-lucide="gem" class="w-3.5 h-3.5 text-pink-400"></i>
+          <span><span id="scoutPointsCount" class="text-pink-400 font-mono font-bold">0</span>點</span>
+        </div>
+
+        <button onclick="openUpgradeModal()" class="flex items-center gap-1 bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 border border-indigo-500/50 px-2.5 py-1 rounded-full transition text-[11px] font-bold">
+          <i data-lucide="star" class="w-3 h-3"></i> 升星所
+        </button>
+        <button onclick="openMarketModal()" class="flex items-center gap-1 bg-pink-600/30 hover:bg-pink-600 text-pink-300 border border-pink-500/50 px-2.5 py-1 rounded-full transition text-[11px] font-bold">
+          <i data-lucide="shopping-bag" class="w-3 h-3"></i> 交易所
+        </button>
+
+        <button onclick="openRedeemModal()" class="text-amber-300 p-1 hover:text-white" title="兌換碼"><i data-lucide="gift" class="w-4 h-4"></i></button>
+        <button onclick="resetGame()" class="text-rose-400 p-1 hover:text-white" title="重置存檔"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 mt-4">
+
+    <!-- TAB 1: 🏀 球隊陣容 -->
+    <section id="tab-roster" class="tab-content space-y-6">
+      <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 p-5 rounded-3xl border border-indigo-900/40 shadow-xl">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+          <div>
+            <h2 class="text-base font-black text-white flex items-center gap-2">
+              <i data-lucide="shield-check" class="text-amber-400 w-4 h-4"></i> 球隊陣容 (5 先發 + 6 替補)
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">錯位先發懲罰 -5 OVR ｜ 同隊滿 3 人化學反應 +1 OVR</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="autoSetHighestOvrLineup()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1">
+              <i data-lucide="zap" class="w-3.5 h-3.5"></i> 一鍵最佳陣容
+            </button>
+<button onclick="exportLineupCode()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition">
+  📋 複製陣容碼
+</button>
+<button onclick="battleWithCode()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition">
+  ⚔️ 好友對戰
+</button>
+            <div id="chemistryBadge" class="text-xs bg-indigo-900/40 border border-indigo-500/40 px-2.5 py-1 rounded-lg text-indigo-300 font-mono">化學反應: +0 OVR</div>
+            <div class="text-right">
+              <div class="text-[10px] text-slate-400 uppercase font-mono">Team Overall</div>
+              <div id="teamOvrBadge" class="text-xl font-black text-amber-400 font-mono leading-none">OVR 0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="text-xs font-bold text-amber-400 mb-2">⭐️ 先發五人陣容 (Starting 5)</div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5" id="rosterStarters"></div>
+        </div>
+
+        <div>
+          <div class="text-xs font-bold text-indigo-300 mb-2">🛡️ 板凳深度 (Bench 6)</div>
+          <div class="grid grid-cols-2 sm:grid-cols-6 gap-2" id="rosterBench"></div>
+        </div>
+      </div>
+
+      <!-- 球員背包庫 -->
+      <div class="bg-slate-900 p-5 rounded-3xl border border-slate-800 shadow">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="users" class="text-amber-400 w-4 h-4"></i> 球員卡片庫 (自動整合最高星級)
+            </h3>
+            <p class="text-xs text-slate-400">重複卡片請至「升星所」突破升級或「交易所」轉化碎片</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+ <div class="flex flex-wrap items-center gap-1.5 text-xs">
+  <!-- 位置篩選 -->
+  <select id="filterPosition" onchange="changeFilter('pos', this.value)" class="bg-slate-950 border border-slate-700 text-slate-200 px-2 py-1 rounded-xl focus:outline-none cursor-pointer">
+    <option value="ALL">全部位置</option>
+    <option value="PG">PG</option>
+    <option value="SG">SG</option>
+    <option value="SF">SF</option>
+    <option value="PF">PF</option>
+    <option value="C">C</option>
+  </select>
+
+  <!-- 球隊篩選 -->
+  <select id="filterTeam" onchange="changeFilter('team', this.value)" class="bg-slate-950 border border-slate-700 text-slate-200 px-2 py-1 rounded-xl focus:outline-none cursor-pointer">
+    <option value="ALL">全部球隊</option>
+    <!-- 30 隊會在 JS 自動或手動渲染 -->
+  </select>
+
+  <!-- 稀有度篩選 -->
+  <select id="filterRarity" onchange="changeFilter('rarity', this.value)" class="bg-slate-950 border border-slate-700 text-slate-200 px-2 py-1 rounded-xl focus:outline-none cursor-pointer">
+    <option value="ALL">全部稀有度</option>
+    <option value="UR">UR</option>
+    <option value="SSR">SSR</option>
+    <option value="SR">SR</option>
+    <option value="R">R</option>
+    <option value="N">N</option>
+  </select>
+
+  <!-- 排序欄位 -->
+  <select id="sortSelector" onchange="changeSortField(this.value)" class="bg-slate-950 border border-slate-700 text-amber-300 font-bold px-2 py-1 rounded-xl focus:outline-none cursor-pointer">
+    <option value="ovr">總評 (OVR)</option>
+    <option value="recent">獲得時間</option>
+    <option value="position">球員位置</option>
+    <option value="rarity">稀有度</option>
+    <option value="name">姓名</option>
+  </select>
+
+  <!-- 升序 / 降序 切換按鈕 -->
+  <button id="sortOrderBtn" onclick="toggleSortOrder()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 px-2.5 py-1 rounded-xl font-mono font-bold transition">
+    ↓ 降序
+  </button>
+</div>
+
+            <button onclick="openBinderModal()" class="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-xl text-xs font-bold shadow transition">
+              <i data-lucide="book-marked" class="w-3.5 h-3.5"></i> 30隊圖鑑冊
+            </button>
+            <span id="inventoryCount" class="text-xs font-mono bg-slate-800 px-3 py-1 rounded-full text-amber-400 border border-slate-700">0 張</span>
+          </div>
+        </div>
+
+        <div id="cardInventory" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[480px] overflow-y-auto pr-1"></div>
+      </div>
+    </section>
+
+    <!-- TAB 2: 🏆 82場例行賽 -->
+    <section id="tab-season" class="tab-content space-y-6 hidden">
+      <div class="bg-gradient-to-b from-slate-900 to-slate-950 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs text-amber-400 mb-3">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          <span id="seasonLimitTip">每日限挑戰 1 次 ｜ 82-GAME SIMULATION</span>
+        </div>
+        <h2 class="text-xl font-black text-white">2026 例行賽 82 場即時模擬</h2>
+        <p class="text-slate-400 text-xs max-w-md mx-auto mt-1">戰績達 42 勝以上自動解鎖 16 強季後賽對戰圖表！</p>
+
+        <div class="max-w-xl mx-auto my-5 bg-slate-950/80 border border-slate-800 rounded-2xl p-5 text-center shadow-inner">
+          <div class="flex justify-between items-center text-xs text-slate-400 font-mono mb-1">
+            <span>2025-26 REGULAR SEASON</span>
+            <span id="seasonStreakBadge" class="text-amber-400 font-bold">最長連勝: 0 場</span>
+          </div>
+          <div id="seasonRecordText" class="text-4xl sm:text-5xl font-black text-amber-400 font-mono my-2 tracking-tight">-- 勝 -- 敗</div>
+          <div class="flex justify-center items-center gap-2 text-xs text-slate-400">
+            <span id="seasonRankText">預估分區排名: --</span>
+            <span>•</span>
+            <span id="seasonOutcomeBadge">尚未進行賽季模擬</span>
+          </div>
+        </div>
+
+        <div id="boxScoreSection" class="max-w-xl mx-auto mb-6 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 text-left hidden">
+          <h4 class="text-xs font-black uppercase text-amber-400 font-mono mb-2 flex items-center gap-1.5">
+            <i data-lucide="award" class="w-4 h-4"></i> 2025-26 隊內數據領袖 (Box Score Leaders)
+          </h4>
+<div id="boxScoreLeadersList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 text-xs font-mono"></div>        </div>
+
+        <div class="flex justify-center gap-3">
+          <button id="simSeasonBtn" onclick="start82GamesSimulation()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition text-white font-black px-6 py-3 rounded-2xl text-sm shadow-lg">
+            🏀 開始模擬 82 場比賽
+          </button>
+          <button id="playoffBtn" onclick="openPlayoffBracketModal()" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 font-black px-6 py-3 rounded-2xl text-sm shadow-lg">
+            🏆 進入 16 強季後賽對戰圖表
+          </button>
+        </div>
+
+        <div class="mt-6 pt-5 border-t border-slate-800 text-left">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold text-slate-300 font-mono">82-GAME TRACKER</span>
+          </div>
+          <div id="gameGrid" class="grid grid-cols-10 sm:grid-cols-14 md:grid-cols-21 gap-1.5 p-3 bg-slate-950/90 rounded-2xl border border-slate-800/80"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: 🎟️ 選秀抽卡 -->
+    <section id="tab-gacha" class="tab-content space-y-6 hidden">
+      <div class="bg-gradient-to-b from-slate-900 to-slate-950 p-8 rounded-3xl border border-slate-800 shadow-xl text-center relative overflow-hidden">
+        <div class="mb-6">
+          <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-slate-800 text-rose-400 border border-slate-700">30 TEAMS × 15 PLAYERS (450 ROSTER)</span>
+          <h2 class="text-xl font-black text-white mt-2">NBA 球星卡池</h2>
+          <div class="flex flex-wrap justify-center gap-2 text-xs mt-2 font-mono">
+            <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border font-bold">UR: 1%</span>
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border font-bold">SSR: 3%</span>
+            <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border font-bold">SR: 10%</span>
+            <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border">R: 15%</span>
+            <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 border">N: 71%</span>
+          </div>
+        </div>
+
+        <div class="w-40 h-56 mx-auto mb-6 bg-gradient-to-br from-rose-900/30 via-slate-900 to-indigo-900/40 rounded-2xl border-2 border-rose-500/40 flex flex-col items-center justify-center p-4 shadow-2xl card-floating">
+          <div class="text-4xl mb-2">💎</div>
+          <div class="text-xs font-black text-rose-300">OFFICIAL BOOSTER</div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-3 max-w-sm mx-auto">
+          <button onclick="launchGachaWithShopAnimation(1)" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-2.5 rounded-xl text-xs shadow-lg">單抽 (1 🎟️)</button>
+          <button onclick="launchGachaWithShopAnimation(10)" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-black px-6 py-2.5 rounded-xl text-xs shadow-lg">十連抽 (10 🎟️)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: 📖 單字筆記 -->
+    <section id="tab-vocab" class="tab-content space-y-6 hidden">
+      <div class="bg-slate-900 p-5 rounded-3xl border border-slate-800 shadow">
+        <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
+          <div class="flex items-center gap-2">
+            <h3 class="text-base font-bold text-white flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="text-amber-400 w-4 h-4"></i> 多益商務核心題庫
+            </h3>
+            <span id="quizStreakIndicator" class="text-xs text-amber-400 font-mono font-bold">連對: 0</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <select id="vocabBoxFilter" onchange="changeVocabBox(this.value)" class="bg-slate-950 border border-slate-700 px-2 py-1 rounded-xl text-amber-300 font-bold focus:outline-none">
+              <option value="all">所有單字庫</option>
+              <option value="box1">箱 1: 每日高頻複習</option>
+              <option value="box2">箱 2: 熟練加強區</option>
+              <option value="box3">箱 3: 畢業精通區</option>
+            </select>
+            <button onclick="toggleQuizMode()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-xl font-bold border border-slate-700" id="quizModeBtn">
+              模式: 翻卡
+            </button>
+          </div>
+        </div>
+
+        <div id="flashcard" class="min-h-[140px] bg-slate-950 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 text-center select-none relative">
+          <div id="flashcardContent" onclick="flipCard()" class="w-full cursor-pointer">
+            <p class="text-[10px] text-slate-500 mb-1">點擊卡片翻面看中文與例句</p>
+            <div class="flex items-center justify-center gap-2">
+              <h4 id="flashWord" class="text-2xl font-black text-amber-400">incentive</h4>
+              <button onclick="speakWord(event)" class="p-1 hover:text-amber-400 text-slate-400 transition" title="朗讀發音">
+                <i data-lucide="volume-2" class="w-5 h-5"></i>
+              </button>
+            </div>
+            <p id="flashMeaning" class="text-sm text-slate-200 mt-1.5 hidden">[箱1・Finance] 誘因、動機</p>
+            <p id="flashExample" class="text-xs text-slate-400 italic mt-1 hidden">"The draft lottery alters tanking incentives."</p>
+          </div>
+
+          <div id="spellingContent" class="w-full hidden space-y-2">
+            <p id="spellingMeaning" class="text-sm font-bold text-slate-200">[箱1・Finance] 誘因、動機</p>
+            <div id="spellingMasked" class="text-xl font-mono tracking-widest text-amber-400 font-black">i _ _ _ _ _ _ _ e</div>
+            <div class="flex justify-center gap-2 pt-1">
+              <input id="spellingInput" type="text" placeholder="請輸入完整單字" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-center text-xs text-white focus:outline-none focus:border-amber-400 w-48">
+              <button onclick="checkSpellingAnswer()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1 rounded-lg text-xs">檢查</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <button onclick="answerQuiz(false)" class="bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 font-semibold py-2 rounded-xl text-xs border border-rose-800/40">不熟 ❌ (退回箱1)</button>
+          <button onclick="answerQuiz(true)" class="bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 font-semibold py-2 rounded-xl text-xs border border-emerald-800/40">記住了 ✅ (升級進階)</button>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 p-5 rounded-3xl border border-slate-800 shadow space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="book-open" class="text-indigo-400 w-4 h-4"></i> 單字庫列表
+            </h3>
+            <p class="text-xs text-slate-400">目前庫存 <span id="vocabTotalBadge" class="text-amber-400 font-bold">0</span> 字</p>
+          </div>
+          <button onclick="addFiveRandomWords()" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition">
+            <i data-lucide="shuffle" class="w-3.5 h-3.5"></i> 隨機新增 5 個多益單字
+          </button>
+        </div>
+
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+          <form id="addWordForm" onsubmit="addWord(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-2">
+            <input id="inputWord" type="text" placeholder="單字" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none">
+            <input id="inputMeaning" type="text" placeholder="翻譯" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none">
+            <select id="inputCategory" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none">
+              <option value="HR">人事行政 (HR)</option>
+              <option value="Finance">財經投資 (Finance)</option>
+              <option value="Travel">商務差旅 (Travel)</option>
+              <option value="Logistics">採購物流 (Logistics)</option>
+            </select>
+            <input id="inputExample" type="text" placeholder="例句" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-1.5 rounded-lg text-xs transition">+ 新增</button>
+          </form>
+        </div>
+        <div id="vocabListContainer" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+      </div>
+    </section>
+
+    <!-- TAB 5: 📊 學習打卡 & 番茄鐘 -->
+    <section id="tab-stats" class="tab-content space-y-6 hidden">
+      <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-5 rounded-3xl border border-indigo-900/40 shadow-xl text-center">
+        <h3 class="text-base font-black text-white mb-1 flex items-center justify-center gap-2">
+          <i data-lucide="clock" class="text-indigo-400 w-4 h-4"></i> 多益 25 分鐘衝刺番茄鐘
+        </h3>
+        <p class="text-xs text-slate-400 mb-4">專注完成一個番茄鐘，自動增加 25 分鐘時長並贈送 1 🎟️ 抽卡券！</p>
+        <div id="timerDisplay" class="text-5xl font-black font-mono text-indigo-300 my-3">25:00</div>
+        <div class="flex justify-center gap-3">
+          <button id="timerToggleBtn" onclick="togglePomodoroTimer()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2 rounded-xl text-xs transition">開始專注</button>
+          <button onclick="resetPomodoroTimer()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-xl text-xs transition">重置</button>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 p-5 rounded-3xl border border-slate-800 shadow">
+        <h3 class="text-base font-bold text-white flex items-center gap-2 mb-3">
+          <i data-lucide="calendar-check" class="text-emerald-400 w-5 h-5"></i> 手動記錄今日多益進度 (+1 🎟️)
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <input id="listenInput" type="number" placeholder="今日聽力 (分鐘)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none">
+          <input id="readInput" type="number" placeholder="今日閱讀 (題)" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none">
+          <button onclick="submitStudyLog()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition">完成打卡</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ⭐ 升星所 Modal -->
+  <div id="upgradeModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col p-4 sm:p-6 hidden overflow-y-auto">
+    <div class="max-w-4xl w-full mx-auto flex justify-between items-center mb-4">
+      <div>
+        <h2 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+          <i data-lucide="star" class="text-amber-400 w-4 h-4"></i> 球員突破升星所 (Star Upgrade Center)
+        </h2>
+        <p class="text-xs text-slate-400">消耗 2 張同星級卡片突破升星（★1➔★2 需 2 張，★2➔★3 需 2 張，OVR +2）</p>
+      </div>
+      <button onclick="closeUpgradeModal()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition">關閉</button>
+    </div>
+    <div class="max-w-4xl w-full mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="upgradeListContainer"></div>
+  </div>
+
+  <!-- 💎 自由市場交易所 Modal -->
+  <div id="marketModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col p-4 sm:p-6 hidden overflow-y-auto">
+    <div class="max-w-4xl w-full mx-auto flex justify-between items-center mb-4">
+      <div>
+        <h2 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="text-pink-400 w-4 h-4"></i> 自由市場交易所 (Scout Market)
+        </h2>
+        <p class="text-xs text-slate-400">將多餘球員卡回收轉化為選秀碎片 (Gem)，並兌換抽卡券或傳奇球星！</p>
+      </div>
+      <button onclick="closeMarketModal()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition">關閉</button>
+    </div>
+
+    <!-- 傳奇兌換專區: Kobe Bryant ('10) -->
+    <div class="max-w-4xl w-full mx-auto mb-4 bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-slate-700 rounded-3xl p-5 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-24 rounded-2xl border-2 silver-black-glow flex flex-col items-center justify-between p-1.5 text-center flex-shrink-0">
+          <span class="text-[8px] font-black text-slate-300 font-mono">LEGEND</span>
+          <img src="https://cdn.nba.com/headshots/nba/latest/1040x760/977.png" class="w-10 h-10 object-cover object-top rounded-full bg-slate-800" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/1040x760/fallback.png'">
+          <span class="text-[8px] font-black text-amber-300 font-mono leading-none">OVR 99</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base font-black text-slate-100">Kobe Bryant ('10)</h3>
+            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-slate-200 text-[10px] font-bold font-mono">銀黑典藏 UR</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">洛杉磯湖人 2010 冠軍賽 MVP 頂峰巔峰形態 ｜ 位置: SG/SF ｜ OVR: 99</p>
+          <p class="text-[11px] text-pink-400 font-mono font-bold mt-0.5">兌換價格: 2400 💎 選秀碎片</p>
+        </div>
+      </div>
+      <button onclick="buyKobeLegend()" class="bg-gradient-to-r from-slate-200 via-slate-400 to-slate-200 hover:brightness-110 text-slate-950 font-black px-5 py-2.5 rounded-2xl text-xs shadow-lg transition flex-shrink-0">
+        兌換 Kobe ('10)
+      </button>
+    </div>
+
+    <div class="max-w-4xl w-full mx-auto mb-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap justify-between items-center gap-4">
+      <div>
+        <h4 class="text-xs font-bold text-amber-400 font-mono">🎫 官方抽卡券補給</h4>
+        <p class="text-xs text-slate-400">使用 50 點選秀碎片兌換 1 張抽卡券</p>
+      </div>
+      <button onclick="buyTicketWithGems()" class="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition">兌換 1 張抽卡券 (50 💎)</button>
+    </div>
+
+    <h3 class="text-sm font-bold text-slate-300 max-w-4xl w-full mx-auto mb-2">可回收轉化為碎片的球員卡清單：</h3>
+    <div class="max-w-4xl w-full mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3" id="marketSellListContainer"></div>
+  </div>
+
+  <!-- 🏆 16 強季後賽對戰圖表 Modal -->
+  <div id="playoffBracketModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex flex-col p-4 sm:p-6 hidden overflow-y-auto">
+    <div class="max-w-5xl w-full mx-auto flex justify-between items-center mb-4">
+      <div>
+        <h2 class="text-base sm:text-lg font-black text-amber-400 flex items-center gap-2">
+          <i data-lucide="award" class="w-4 h-4"></i> 2026 NBA 季後賽 16 強對戰圖表
+        </h2>
+        <p class="text-xs text-slate-400">7 戰 4 勝制淘汰賽！推進每一輪對決，贏取總冠軍金盃與 15 張抽卡券！</p>
+      </div>
+      <button onclick="closePlayoffBracketModal()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition">關閉</button>
+    </div>
+
+    <div class="max-w-5xl w-full mx-auto my-auto grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+        <h3 class="text-xs font-black uppercase text-slate-400 font-mono mb-3">Round 1 (首輪 8組)</h3>
+        <div id="bracketRound1" class="space-y-2 text-xs max-h-96 overflow-y-auto pr-1"></div>
+        <button onclick="simulatePlayoffRound(0)" id="playoffBtnR1" class="mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs transition">模擬首輪對決</button>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+        <h3 class="text-xs font-black uppercase text-slate-400 font-mono mb-3">Semis (次輪 4組)</h3>
+        <div id="bracketRound2" class="space-y-2 text-xs my-auto"></div>
+        <button onclick="simulatePlayoffRound(1)" id="playoffBtnR2" class="mt-4 bg-slate-800 text-slate-500 font-bold py-2 rounded-xl text-xs cursor-not-allowed" disabled>模擬分區次輪</button>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+        <h3 class="text-xs font-black uppercase text-slate-400 font-mono mb-3">Conf Finals (分決 2組)</h3>
+        <div id="bracketRound3" class="space-y-2 text-xs my-auto"></div>
+        <button onclick="simulatePlayoffRound(2)" id="playoffBtnR3" class="mt-4 bg-slate-800 text-slate-500 font-bold py-2 rounded-xl text-xs cursor-not-allowed" disabled>模擬分區決賽</button>
+      </div>
+      <div class="bg-gradient-to-br from-amber-950/40 via-slate-900 to-amber-950/40 border border-amber-500/50 p-4 rounded-2xl flex flex-col justify-between">
+        <h3 class="text-xs font-black uppercase text-amber-400 font-mono mb-3">NBA Finals (總冠軍賽)</h3>
+        <div id="bracketRound4" class="space-y-2 text-xs my-auto"></div>
+        <button onclick="simulatePlayoffRound(3)" id="playoffBtnR4" class="mt-4 bg-slate-800 text-slate-500 font-bold py-2 rounded-xl text-xs cursor-not-allowed" disabled>爭奪總冠軍金盃！</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📖 30 隊圖鑑集卡冊 -->
+  <div id="binderModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex flex-col p-4 sm:p-6 hidden overflow-y-auto">
+    <div class="max-w-5xl w-full mx-auto flex justify-between items-center mb-4">
+      <div>
+        <h2 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+          <i data-lucide="book-marked" class="text-amber-400 w-4 h-4"></i> 30 隊圖鑑冊 (制霸送 10 🎟️)
+        </h2>
+        <p class="text-xs text-slate-400">全隊 15 人集滿即可領取專屬「隊史制霸獎勵」！</p>
+      </div>
+      <button onclick="closeBinderModal()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition">關閉</button>
+    </div>
+    <div class="max-w-5xl w-full mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="binderTeamGrid"></div>
+  </div>
+
+  <!-- 🎁 兌換碼彈窗 -->
+  <div id="redeemModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center relative">
+      <button onclick="closeRedeemModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <h3 class="text-base font-black text-white mb-1">禮包兌換碼</h3>
+      <p class="text-xs text-slate-400 mb-4">請輸入專屬序號進行兌換</p>
+      <input id="redeemInput" type="text" placeholder="" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-center text-sm font-mono uppercase text-amber-300 focus:outline-none mb-4">
+      <button onclick="submitRedeemCode()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-2.5 rounded-xl text-xs transition">立即兌換</button>
+    </div>
+  </div>
+
+  <!-- 🏪 卡店老闆遞卡包動畫場景 -->
+  <div id="cardShopOverlay" class="fixed inset-0 bg-slate-950/98 backdrop-blur-lg z-50 flex flex-col items-center justify-center p-4 hidden">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center shadow-2xl relative">
+      <div class="flex items-center justify-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl">👴</div>
+        <div class="text-left">
+          <p class="text-xs font-bold text-amber-400 font-mono">卡店老闆</p>
+          <p class="text-xs text-slate-300">「歡迎光臨！這是您要的球員卡包，請收下！」</p>
+        </div>
+      </div>
+      <div class="my-6 flex justify-center">
+        <div id="shopPackVisual" onclick="ripShopPack()" class="cursor-pointer w-48 h-68 bg-gradient-to-br from-amber-600 via-yellow-700 to-amber-950 rounded-2xl p-4 flex flex-col justify-between items-center text-center shadow-2xl border-4 border-amber-400/90 card-floating">
+          <span class="text-[10px] font-mono font-bold text-amber-200">NBA OFFICIAL PACK</span>
+          <div class="text-5xl my-auto">📦</div>
+          <div class="bg-black/70 px-3 py-1.5 rounded-full text-xs font-black text-amber-300 border border-amber-500/40 animate-pulse">點擊用力撕開！</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 💥 抽卡展示舞台 -->
+  <div id="gachaModal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex flex-col justify-between p-4 sm:p-6 hidden overflow-y-auto">
+    <div class="max-w-5xl w-full mx-auto flex justify-between items-center z-10">
+      <div>
+        <h2 class="text-base sm:text-lg font-black text-amber-400">點擊卡片翻開！</h2>
+        <p class="text-xs text-slate-400">獲得你的隊友</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="revealAllCards()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition">一鍵全部翻開</button>
+        <button onclick="closeGachaModal()" class="bg-rose-900/60 hover:bg-rose-800 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition">完成返回</button>
+      </div>
+    </div>
+    <div class="max-w-5xl w-full mx-auto my-auto py-2 flex flex-col items-center justify-center gap-3">
+      <div id="gachaSingleContainer" class="w-full flex justify-center items-center py-4"></div>
+      <div id="gachaRowTop" class="w-full flex justify-center items-center gap-2 sm:gap-3"></div>
+      <div id="gachaRowBottom" class="w-full flex justify-center items-center gap-2 sm:gap-3"></div>
+    </div>
+  </div>
+
+  <!-- 底部固定 Tab 導航欄 -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 z-40 py-2">
+    <div class="max-w-md mx-auto grid grid-cols-5 gap-1 px-2">
+      <button onclick="switchTab('roster')" class="nav-tab flex flex-col items-center gap-1 text-[10px] text-amber-400 font-bold" data-target="roster"><i data-lucide="shield" class="w-4 h-4"></i> 陣容</button>
+      <button onclick="switchTab('season')" class="nav-tab flex flex-col items-center gap-1 text-[10px] text-slate-400 hover:text-slate-200" data-target="season"><i data-lucide="trophy" class="w-4 h-4"></i> 82場模擬</button>
+      <button onclick="switchTab('gacha')" class="nav-tab flex flex-col items-center gap-1 text-[10px] text-slate-400 hover:text-slate-200" data-target="gacha"><i data-lucide="ticket" class="w-4 h-4"></i> 選秀</button>
+      <button onclick="switchTab('vocab')" class="nav-tab flex flex-col items-center gap-1 text-[10px] text-slate-400 hover:text-slate-200" data-target="vocab"><i data-lucide="book-open" class="w-4 h-4"></i> 單字</button>
+      <button onclick="switchTab('stats')" class="nav-tab flex flex-col items-center gap-1 text-[10px] text-slate-400 hover:text-slate-200" data-target="stats"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> 打卡</button>
+    </div>
+  </nav>
+
+  <script>
+    /* =====================================================
+       01. CONFIG
+    ===================================================== */
+    const STORAGE_KEY = "toeicquest_nba_save_v1";
+    const GACHA_RATES = {
+      UR: 1,
+      SSR: 3,
+      SR: 10,
+      R: 15,
+      N: 71
+    };
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+
+      if (type === 'flip') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(700, now + 0.08);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        osc.start(now); osc.stop(now + 0.08);
+      } else if (type === 'rip') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.25);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now); osc.stop(now + 0.25);
+      } else if (type === 'ur_ssr') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(554.37, now + 0.1);
+        osc.frequency.setValueAtTime(659.25, now + 0.2);
+        osc.frequency.setValueAtTime(880, now + 0.3);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+        osc.start(now); osc.stop(now + 0.6);
+      }
+    }
+
+    /* =====================================================
+       02. DATA
+    ===================================================== */
+    const TEAM_DATA = {
+      "ATL": [
+        { name: "Trae Young", pos: ["PG"], ovr: 90, id: 1629027 },
+        { name: "Jalen Johnson", pos: ["PF"], ovr: 89, id: 1630552 },
+        { name: "Dyson Daniels", pos: ["SG", "PG"], ovr: 85, id: 1630700 },
+        { name: "Clint Capela", pos: ["C"], ovr: 82, id: 203991 },
+        { name: "Zaccharie Risacher", pos: ["SF"], ovr: 80, id: 1642258 },
+        { name: "De'Andre Hunter", pos: ["SF", "PF"], ovr: 80, id: 1629631 },
+        { name: "Bogdan Bogdanović", pos: ["SG", "SF"], ovr: 80, id: 203992 },
+        { name: "Onyeka Okongwu", pos: ["C"], ovr: 79, id: 1630168 },
+        { name: "Larry Nance Jr.", pos: ["PF", "C"], ovr: 77, id: 1626204 },
+        { name: "Kobe Bufkin", pos: ["PG", "SG"], ovr: 76, id: 1641723 },
+        { name: "Garrison Mathews", pos: ["SG"], ovr: 75, id: 1629726 },
+        { name: "Vít Krejčí", pos: ["PG", "SG"], ovr: 76, id: 1630249 },
+        { name: "David Roddy", pos: ["SF", "PF"], ovr: 75, id: 1631223 },
+        { name: "Mouhamed Gueye", pos: ["PF"], ovr: 74, id: 1631243 },
+        { name: "Dominick Barlow", pos: ["PF", "C"], ovr: 73, id: 1631230 }
+      ],
+      "BOS": [
+        { name: "Jayson Tatum", pos: ["SF", "PF"], ovr: 96, id: 1628369 },
+        { name: "Jaylen Brown", pos: ["SG", "SF"], ovr: 92, id: 1627759 },
+        { name: "Kristaps Porziņģis", pos: ["C", "PF"], ovr: 88, id: 204001 },
+        { name: "Derrick White", pos: ["PG", "SG"], ovr: 87, id: 1628401 },
+        { name: "Jrue Holiday", pos: ["PG", "SG"], ovr: 86, id: 201950 },
+        { name: "Payton Pritchard", pos: ["PG"], ovr: 80, id: 1630202 },
+        { name: "Al Horford", pos: ["C", "PF"], ovr: 79, id: 201143 },
+        { name: "Sam Hauser", pos: ["SF"], ovr: 78, id: 1630573 },
+        { name: "Luke Kornet", pos: ["C"], ovr: 78, id: 1628436 },
+        { name: "Neemias Queta", pos: ["C"], ovr: 77, id: 1629674 },
+        { name: "Torrey Craig", pos: ["SF", "PF"], ovr: 76, id: 1628470 },
+        { name: "Xavier Tillman", pos: ["PF", "C"], ovr: 75, id: 1630214 },
+        { name: "Jaden Springer", pos: ["SG"], ovr: 74, id: 1630531 },
+        { name: "Jordan Walsh", pos: ["SF"], ovr: 73, id: 1641775 },
+        { name: "Baylor Scheierman", pos: ["SG"], ovr: 73, id: 1631248 }
+      ],
+      "BKN": [
+        { name: "Cam Thomas", pos: ["SG"], ovr: 84, id: 1630560 },
+        { name: "Nic Claxton", pos: ["C"], ovr: 83, id: 1629651 },
+        { name: "Cameron Johnson", pos: ["SF", "PF"], ovr: 82, id: 1629661 },
+        { name: "Dennis Schröder", pos: ["PG"], ovr: 80, id: 203471 },
+        { name: "D'Angelo Russell", pos: ["PG"], ovr: 80, id: 1626156 },
+        { name: "Dorian Finney-Smith", pos: ["PF", "SF"], ovr: 79, id: 1627827 },
+        { name: "Ben Simmons", pos: ["PG", "PF"], ovr: 78, id: 1627732 },
+        { name: "Day'Ron Sharpe", pos: ["C"], ovr: 77, id: 1630549 },
+        { name: "Ziaire Williams", pos: ["SF"], ovr: 77, id: 1630533 },
+        { name: "Noah Clowney", pos: ["PF", "C"], ovr: 76, id: 1641730 },
+        { name: "Jalen Wilson", pos: ["SF"], ovr: 76, id: 1630592 },
+        { name: "Trendon Watford", pos: ["PF"], ovr: 75, id: 1630570 },
+        { name: "Shake Milton", pos: ["SG", "PG"], ovr: 74, id: 1629003 },
+        { name: "Keon Johnson", pos: ["SG"], ovr: 74, id: 1630553 },
+        { name: "Dariq Whitehead", pos: ["SF"], ovr: 73, id: 1641727 }
+      ],
+      "CHA": [
+        { name: "LaMelo Ball", pos: ["PG"], ovr: 88, id: 1630163 },
+        { name: "Brandon Miller", pos: ["SF", "SG"], ovr: 84, id: 1641706 },
+        { name: "Miles Bridges", pos: ["PF", "SF"], ovr: 83, id: 1628970 },
+        { name: "Mark Williams", pos: ["C"], ovr: 82, id: 1631109 },
+        { name: "Tre Mann", pos: ["PG", "SG"], ovr: 80, id: 1630544 },
+        { name: "Grant Williams", pos: ["PF"], ovr: 78, id: 1629684 },
+        { name: "Nick Richards", pos: ["C"], ovr: 78, id: 1630208 },
+        { name: "Josh Green", pos: ["SG", "SF"], ovr: 76, id: 1630182 },
+        { name: "Vasilije Micić", pos: ["PG"], ovr: 76, id: 203995 },
+        { name: "Cody Martin", pos: ["SF"], ovr: 76, id: 1628998 },
+        { name: "Seth Curry", pos: ["SG"], ovr: 75, id: 203552 },
+        { name: "Nick Smith Jr.", pos: ["SG"], ovr: 77, id: 1641733 },
+        { name: "Tidjane Salaün", pos: ["PF"], ovr: 74, id: 1642275 },
+        { name: "Taj Gibson", pos: ["C", "PF"], ovr: 73, id: 201959 },
+        { name: "KJ Simpson", pos: ["PG"], ovr: 74, id: 1642354 }
+      ],
+      "CHI": [
+        { name: "Zach LaVine", pos: ["SG"], ovr: 85, id: 203897 },
+        { name: "Coby White", pos: ["PG", "SG"], ovr: 85, id: 1629632 },
+        { name: "Josh Giddey", pos: ["PG", "SG"], ovr: 84, id: 1630581 },
+        { name: "Nikola Vučević", pos: ["C"], ovr: 82, id: 202696 },
+        { name: "Ayo Dosunmu", pos: ["SG", "PG"], ovr: 80, id: 1630245 },
+        { name: "Matas Buzelis", pos: ["SF", "PF"], ovr: 79, id: 1641824 },
+        { name: "Kevin Huerter", pos: ["SG", "SF"], ovr: 79, id: 1628989 },
+        { name: "Patrick Williams", pos: ["PF"], ovr: 77, id: 1630172 },
+        { name: "Jalen Smith", pos: ["PF", "C"], ovr: 78, id: 1630188 },
+        { name: "Lonzo Ball", pos: ["PG"], ovr: 78, id: 1628366 },
+        { name: "Talen Horton-Tucker", pos: ["SG"], ovr: 76, id: 1629659 },
+        { name: "Torrey Craig", pos: ["SF"], ovr: 75, id: 1628470 },
+        { name: "Julian Phillips", pos: ["SF"], ovr: 74, id: 1641763 },
+        { name: "Dalen Terry", pos: ["SG"], ovr: 74, id: 1631207 },
+        { name: "Jevon Carter", pos: ["PG"], ovr: 74, id: 1628975 }
+      ],
+      "CLE": [
+        { name: "Donovan Mitchell", pos: ["SG"], ovr: 93, id: 1628378 },
+        { name: "Evan Mobley", pos: ["PF", "C"], ovr: 89, id: 1630596 },
+        { name: "Darius Garland", pos: ["PG"], ovr: 87, id: 1629636 },
+        { name: "Jarrett Allen", pos: ["C"], ovr: 86, id: 1628386 },
+        { name: "Caris LeVert", pos: ["SG", "SF"], ovr: 80, id: 1627747 },
+        { name: "Max Strus", pos: ["SF", "SG"], ovr: 79, id: 1629622 },
+        { name: "Isaac Okoro", pos: ["SF", "SG"], ovr: 78, id: 1630171 },
+        { name: "Ty Jerome", pos: ["PG"], ovr: 80, id: 1629660 },
+        { name: "Dean Wade", pos: ["PF"], ovr: 78, id: 1629731 },
+        { name: "Georges Niang", pos: ["PF"], ovr: 76, id: 1627777 },
+        { name: "Sam Merrill", pos: ["SG"], ovr: 76, id: 1630241 },
+        { name: "Craig Porter Jr.", pos: ["PG"], ovr: 75, id: 1641854 },
+        { name: "Jaylon Tyson", pos: ["SF"], ovr: 76, id: 1642281 },
+        { name: "Tristan Thompson", pos: ["C"], ovr: 74, id: 202684 },
+        { name: "JT Thor", pos: ["PF"], ovr: 73, id: 1630550 }
+      ],
+      "DAL": [
+        { name: "Anthony Davis", pos: ["C", "PF"], ovr: 95, id: 203076 },
+        { name: "Kyrie Irving", pos: ["SG", "PG"], ovr: 91, id: 202681 },
+        { name: "Klay Thompson", pos: ["SG", "SF"], ovr: 82, id: 202691 },
+        { name: "P.J. Washington", pos: ["PF"], ovr: 82, id: 1629023 },
+        { name: "Dereck Lively II", pos: ["C"], ovr: 82, id: 1641726 },
+        { name: "Daniel Gafford", pos: ["C"], ovr: 81, id: 1629655 },
+        { name: "Naji Marshall", pos: ["SF"], ovr: 80, id: 1630230 },
+        { name: "Spencer Dinwiddie", pos: ["PG", "SG"], ovr: 79, id: 203915 },
+        { name: "Max Christie", pos: ["SG"], ovr: 78, id: 1631108 },
+        { name: "Quentin Grimes", pos: ["SG"], ovr: 78, id: 1629656 },
+        { name: "Jaden Hardy", pos: ["SG", "PG"], ovr: 77, id: 1630702 },
+        { name: "Dante Exum", pos: ["PG", "SG"], ovr: 76, id: 203957 },
+        { name: "Dwight Powell", pos: ["C"], ovr: 74, id: 203939 },
+        { name: "Olivier-Maxence Prosper", pos: ["PF"], ovr: 74, id: 1641765 },
+        { name: "Kessler Edwards", pos: ["SF"], ovr: 73, id: 1630556 }
+      ],
+      "DEN": [
+        { name: "Nikola Jokić", pos: ["C"], ovr: 98, id: 203999 },
+        { name: "Jamal Murray", pos: ["PG", "SG"], ovr: 86, id: 1627750 },
+        { name: "Michael Porter Jr.", pos: ["SF", "PF"], ovr: 84, id: 1629008 },
+        { name: "Aaron Gordon", pos: ["PF"], ovr: 84, id: 203932 },
+        { name: "Russell Westbrook", pos: ["PG"], ovr: 80, id: 201566 },
+        { name: "Christian Braun", pos: ["SG"], ovr: 80, id: 1631128 },
+        { name: "Peyton Watson", pos: ["SF"], ovr: 77, id: 1631212 },
+        { name: "Julian Strawther", pos: ["SG", "SF"], ovr: 77, id: 1631124 },
+        { name: "Dario Šarić", pos: ["PF", "C"], ovr: 76, id: 203967 },
+        { name: "Zeke Nnaji", pos: ["PF", "C"], ovr: 75, id: 1630192 },
+        { name: "DeAndre Jordan", pos: ["C"], ovr: 75, id: 201599 },
+        { name: "Vlatko Čančar", pos: ["PF"], ovr: 74, id: 1628427 },
+        { name: "Jalen Pickett", pos: ["PG"], ovr: 73, id: 1629618 },
+        { name: "Hunter Tyson", pos: ["PF"], ovr: 73, id: 1641816 },
+        { name: "DaRon Holmes II", pos: ["C", "PF"], ovr: 74, id: 1641747 }
+      ],
+      "DET": [
+        { name: "Cade Cunningham", pos: ["PG"], ovr: 90, id: 1630595 },
+        { name: "Jaden Ivey", pos: ["SG"], ovr: 83, id: 1631093 },
+        { name: "Jalen Duren", pos: ["C"], ovr: 83, id: 1631105 },
+        { name: "Tobias Harris", pos: ["PF"], ovr: 82, id: 202699 },
+        { name: "Ausar Thompson", pos: ["SF"], ovr: 82, id: 1641709 },
+        { name: "Tim Hardaway Jr.", pos: ["SG", "SF"], ovr: 80, id: 203501 },
+        { name: "Malik Beasley", pos: ["SG"], ovr: 79, id: 1627736 },
+        { name: "Isaiah Stewart", pos: ["C", "PF"], ovr: 78, id: 1630191 },
+        { name: "Simone Fontecchio", pos: ["SF"], ovr: 76, id: 1631323 },
+        { name: "Ron Holland II", pos: ["SF"], ovr: 76, id: 1641842 },
+        { name: "Paul Reed", pos: ["C", "PF"], ovr: 76, id: 1630194 },
+        { name: "Marcus Sasser", pos: ["PG"], ovr: 76, id: 1631204 },
+        { name: "Wendell Moore Jr.", pos: ["SG"], ovr: 74, id: 1631111 },
+        { name: "Bobi Klintman", pos: ["PF"], ovr: 73, id: 1641752 },
+        { name: "Daniss Jenkins", pos: ["PG"], ovr: 73, id: 1642450 }
+      ],
+      "GSW": [
+        { name: "Stephen Curry", pos: ["PG", "SG"], ovr: 95, id: 201939 },
+        { name: "Draymond Green", pos: ["PF", "C"], ovr: 84, id: 203110 },
+        { name: "Jonathan Kuminga", pos: ["PF", "SF"], ovr: 83, id: 1630228 },
+        { name: "Andrew Wiggins", pos: ["SF"], ovr: 82, id: 203952 },
+        { name: "Brandin Podziemski", pos: ["SG", "PG"], ovr: 81, id: 1641764 },
+        { name: "Buddy Hield", pos: ["SG"], ovr: 80, id: 1627741 },
+        { name: "De'Anthony Melton", pos: ["SG", "PG"], ovr: 79, id: 1629001 },
+        { name: "Kyle Anderson", pos: ["PF", "SF"], ovr: 78, id: 203937 },
+        { name: "Moses Moody", pos: ["SG", "SF"], ovr: 78, id: 1630541 },
+        { name: "Kevon Looney", pos: ["C"], ovr: 77, id: 1626172 },
+        { name: "Gary Payton II", pos: ["SG"], ovr: 77, id: 1627780 },
+        { name: "Trayce Jackson-Davis", pos: ["C"], ovr: 77, id: 1631218 },
+        { name: "Gui Santos", pos: ["SF"], ovr: 75, id: 1630611 },
+        { name: "Lindy Waters III", pos: ["SG"], ovr: 74, id: 1630322 },
+        { name: "Quinten Post", pos: ["C"], ovr: 73, id: 1642366 }
+      ],
+      "HOU": [
+        { name: "Alperen Şengün", pos: ["C"], ovr: 86, id: 1630578 },
+        { name: "Amen Thompson", pos: ["SF", "PG"], ovr: 86, id: 1641708 },
+        { name: "Jalen Green", pos: ["SG"], ovr: 84, id: 1630224 },
+        { name: "Fred VanVleet", pos: ["PG"], ovr: 84, id: 1627832 },
+        { name: "Jabari Smith Jr.", pos: ["PF"], ovr: 82, id: 1631095 },
+        { name: "Dillon Brooks", pos: ["SF"], ovr: 81, id: 1628415 },
+        { name: "Tari Eason", pos: ["PF", "SF"], ovr: 81, id: 1631106 },
+        { name: "Reed Sheppard", pos: ["PG", "SG"], ovr: 79, id: 1642263 },
+        { name: "Steven Adams", pos: ["C"], ovr: 78, id: 203500 },
+        { name: "Cam Whitmore", pos: ["SF", "SG"], ovr: 78, id: 1641715 },
+        { name: "Jeff Green", pos: ["PF", "C"], ovr: 76, id: 201145 },
+        { name: "Jock Landale", pos: ["C"], ovr: 75, id: 1629111 },
+        { name: "Aaron Holiday", pos: ["PG"], ovr: 75, id: 1628988 },
+        { name: "Jae'Sean Tate", pos: ["SF", "PF"], ovr: 75, id: 1630256 },
+        { name: "Nate Williams", pos: ["SG"], ovr: 73, id: 1631466 }
+      ],
+      "IND": [
+        { name: "Tyrese Haliburton", pos: ["PG"], ovr: 91, id: 1630169 },
+        { name: "Pascal Siakam", pos: ["PF"], ovr: 89, id: 1627783 },
+        { name: "Myles Turner", pos: ["C"], ovr: 84, id: 1626167 },
+        { name: "Andrew Nembhard", pos: ["SG", "PG"], ovr: 83, id: 1629614 },
+        { name: "Bennedict Mathurin", pos: ["SG", "SF"], ovr: 83, id: 1631097 },
+        { name: "Aaron Nesmith", pos: ["SF"], ovr: 81, id: 1630174 },
+        { name: "T.J. McConnell", pos: ["PG"], ovr: 80, id: 204456 },
+        { name: "Obi Toppin", pos: ["PF"], ovr: 80, id: 1630167 },
+        { name: "Isaiah Jackson", pos: ["C"], ovr: 77, id: 1630543 },
+        { name: "Ben Sheppard", pos: ["SG"], ovr: 76, id: 1641767 },
+        { name: "Jarace Walker", pos: ["PF"], ovr: 77, id: 1641716 },
+        { name: "James Wiseman", pos: ["C"], ovr: 75, id: 1630164 },
+        { name: "Thomas Bryant", pos: ["C"], ovr: 75, id: 1628418 },
+        { name: "Johnny Furphy", pos: ["SF"], ovr: 73, id: 1642277 },
+        { name: "Kendall Brown", pos: ["SF"], ovr: 73, id: 1631112 }
+      ],
+      "LAC": [
+        { name: "Kawhi Leonard", pos: ["SF", "PF"], ovr: 92, id: 202695 },
+        { name: "James Harden", pos: ["PG", "SG"], ovr: 89, id: 201935 },
+        { name: "Norman Powell", pos: ["SG", "SF"], ovr: 83, id: 1626181 },
+        { name: "Ivica Zubac", pos: ["C"], ovr: 83, id: 1627826 },
+        { name: "Derrick Jones Jr.", pos: ["SF", "PF"], ovr: 79, id: 1627884 },
+        { name: "Terance Mann", pos: ["SG", "SF"], ovr: 78, id: 1629611 },
+        { name: "Kris Dunn", pos: ["PG"], ovr: 77, id: 1627739 },
+        { name: "Nicolas Batum", pos: ["PF", "SF"], ovr: 76, id: 201587 },
+        { name: "Amir Coffey", pos: ["SF"], ovr: 76, id: 1629599 },
+        { name: "Mo Bamba", pos: ["C"], ovr: 75, id: 1628964 },
+        { name: "Kevin Porter Jr.", pos: ["PG", "SG"], ovr: 78, id: 1629645 },
+        { name: "Bones Hyland", pos: ["PG"], ovr: 75, id: 1630538 },
+        { name: "Kobe Brown", pos: ["PF"], ovr: 73, id: 1641738 },
+        { name: "Jordan Miller", pos: ["SF"], ovr: 74, id: 1641757 },
+        { name: "Cam Christie", pos: ["SG"], ovr: 72, id: 1642353 }
+      ],
+      "LAL": [
+        { name: "Luka Dončić", pos: ["PG", "SG"], ovr: 97, id: 1629029 },
+        { name: "LeBron James", pos: ["SF", "PF"], ovr: 94, id: 2544 },
+        { name: "Austin Reaves", pos: ["SG", "PG"], ovr: 85, id: 1630559 },
+        { name: "Rui Hachimura", pos: ["PF", "SF"], ovr: 80, id: 1629060 },
+        { name: "Maxi Kleber", pos: ["PF", "C"], ovr: 77, id: 1628467 },
+        { name: "Jarred Vanderbilt", pos: ["PF", "SF"], ovr: 78, id: 1629020 },
+        { name: "Gabe Vincent", pos: ["PG"], ovr: 77, id: 1629216 },
+        { name: "Dalton Knecht", pos: ["SF", "SG"], ovr: 78, id: 1642261 },
+        { name: "Jaxson Hayes", pos: ["C"], ovr: 76, id: 1629637 },
+        { name: "Christian Wood", pos: ["C", "PF"], ovr: 77, id: 1626174 },
+        { name: "Markieff Morris", pos: ["PF"], ovr: 74, id: 202693 },
+        { name: "Cam Reddish", pos: ["SF"], ovr: 75, id: 1629629 },
+        { name: "Bronny James", pos: ["SG", "PG"], ovr: 72, id: 1642355 },
+        { name: "Maxwell Lewis", pos: ["SF"], ovr: 73, id: 1641721 },
+        { name: "Armel Traore", pos: ["PF"], ovr: 71, id: 1642422 }
+      ],
+      "MEM": [
+        { name: "Ja Morant", pos: ["PG"], ovr: 91, id: 1629630 },
+        { name: "Jaren Jackson Jr.", pos: ["PF", "C"], ovr: 89, id: 1628991 },
+        { name: "Desmond Bane", pos: ["SG"], ovr: 86, id: 1630217 },
+        { name: "Marcus Smart", pos: ["PG", "SG"], ovr: 81, id: 203935 },
+        { name: "Zach Edey", pos: ["C"], ovr: 80, id: 1641744 },
+        { name: "Santi Aldama", pos: ["PF", "C"], ovr: 80, id: 1630583 },
+        { name: "Vince Williams Jr.", pos: ["SG", "SF"], ovr: 78, id: 1631246 },
+        { name: "GG Jackson", pos: ["PF", "SF"], ovr: 78, id: 1641713 },
+        { name: "Luke Kennard", pos: ["SG"], ovr: 77, id: 1628379 },
+        { name: "Scotty Pippen Jr.", pos: ["PG"], ovr: 77, id: 1630590 },
+        { name: "Jaylen Wells", pos: ["SF"], ovr: 77, id: 1642377 },
+        { name: "John Konchar", pos: ["SG"], ovr: 75, id: 1629723 },
+        { name: "Jake LaRavia", pos: ["PF", "SF"], ovr: 75, id: 1631222 },
+        { name: "Jay Huff", pos: ["C"], ovr: 75, id: 1630643 },
+        { name: "Lamar Stevens", pos: ["PF"], ovr: 74, id: 1630205 }
+      ],
+      "MIA": [
+        { name: "Bam Adebayo", pos: ["C"], ovr: 89, id: 1628389 },
+        { name: "Jimmy Butler", pos: ["SF", "PF"], ovr: 88, id: 202710 },
+        { name: "Tyler Herro", pos: ["SG", "PG"], ovr: 86, id: 1629639 },
+        { name: "Terry Rozier", pos: ["PG"], ovr: 81, id: 1626179 },
+        { name: "Jaime Jaquez Jr.", pos: ["SF"], ovr: 79, id: 1631170 },
+        { name: "Duncan Robinson", pos: ["SG", "SF"], ovr: 78, id: 1629130 },
+        { name: "Nikola Jović", pos: ["PF"], ovr: 78, id: 1631107 },
+        { name: "Kel'el Ware", pos: ["C"], ovr: 77, id: 1642276 },
+        { name: "Kevin Love", pos: ["PF", "C"], ovr: 77, id: 201567 },
+        { name: "Haywood Highsmith", pos: ["SF", "PF"], ovr: 76, id: 1629312 },
+        { name: "Josh Richardson", pos: ["SG"], ovr: 76, id: 1626196 },
+        { name: "Alec Burks", pos: ["SG"], ovr: 76, id: 202692 },
+        { name: "Pelle Larsson", pos: ["SG"], ovr: 75, id: 1641796 },
+        { name: "Thomas Bryant", pos: ["C"], ovr: 74, id: 1628418 },
+        { name: "Dru Smith", pos: ["PG"], ovr: 73, id: 1630696 }
+      ],
+      "MIL": [
+        { name: "Giannis Antetokounmpo", pos: ["PF", "C"], ovr: 97, id: 203507 },
+        { name: "Damian Lillard", pos: ["PG"], ovr: 89, id: 203081 },
+        { name: "Khris Middleton", pos: ["SF"], ovr: 84, id: 203114 },
+        { name: "Brook Lopez", pos: ["C"], ovr: 83, id: 201572 },
+        { name: "Bobby Portis", pos: ["PF", "C"], ovr: 82, id: 1626171 },
+        { name: "Gary Trent Jr.", pos: ["SG"], ovr: 79, id: 1629018 },
+        { name: "Taurean Prince", pos: ["PF", "SF"], ovr: 77, id: 1627752 },
+        { name: "Pat Connaughton", pos: ["SG", "SF"], ovr: 76, id: 1626192 },
+        { name: "Delon Wright", pos: ["PG"], ovr: 76, id: 1626203 },
+        { name: "AJ Green", pos: ["SG"], ovr: 76, id: 1631260 },
+        { name: "MarJon Beauchamp", pos: ["SF"], ovr: 75, id: 1630699 },
+        { name: "Andre Jackson Jr.", pos: ["SG"], ovr: 74, id: 1641748 },
+        { name: "AJ Johnson", pos: ["PG"], ovr: 73, id: 1642358 },
+        { name: "Tyler Smith", pos: ["PF"], ovr: 73, id: 1641890 },
+        { name: "Chris Livingston", pos: ["SF"], ovr: 72, id: 1641753 }
+      ],
+      "MIN": [
+        { name: "Anthony Edwards", pos: ["SG", "SF"], ovr: 94, id: 1630162 },
+        { name: "Julius Randle", pos: ["PF"], ovr: 86, id: 203944 },
+        { name: "Rudy Gobert", pos: ["C"], ovr: 86, id: 203497 },
+        { name: "Jaden McDaniels", pos: ["SF", "PF"], ovr: 83, id: 1630183 },
+        { name: "Naz Reid", pos: ["C", "PF"], ovr: 82, id: 1629675 },
+        { name: "Mike Conley", pos: ["PG"], ovr: 82, id: 201144 },
+        { name: "Donte DiVincenzo", pos: ["SG"], ovr: 81, id: 1628978 },
+        { name: "Nickeil Alexander-Walker", pos: ["SG", "PG"], ovr: 80, id: 1629638 },
+        { name: "Rob Dillingham", pos: ["PG"], ovr: 77, id: 1642265 },
+        { name: "Terrence Shannon Jr.", pos: ["SG"], ovr: 75, id: 1630545 },
+        { name: "Joe Ingles", pos: ["SF"], ovr: 75, id: 204060 },
+        { name: "Luka Garza", pos: ["C"], ovr: 75, id: 1630568 },
+        { name: "Josh Minott", pos: ["PF"], ovr: 74, id: 1631169 },
+        { name: "Leonard Miller", pos: ["PF"], ovr: 74, id: 1631159 },
+        { name: "Jaylen Clark", pos: ["SG"], ovr: 72, id: 1641740 }
+      ],
+      "NOP": [
+        { name: "Zion Williamson", pos: ["PF"], ovr: 88, id: 1629627 },
+        { name: "Dejounte Murray", pos: ["PG", "SG"], ovr: 87, id: 1627749 },
+        { name: "Brandon Ingram", pos: ["SF"], ovr: 86, id: 1627742 },
+        { name: "CJ McCollum", pos: ["SG", "PG"], ovr: 83, id: 203468 },
+        { name: "Trey Murphy III", pos: ["SF", "SG"], ovr: 82, id: 1630530 },
+        { name: "Herbert Jones", pos: ["SF", "PF"], ovr: 81, id: 1630529 },
+        { name: "Jose Alvarado", pos: ["PG"], ovr: 78, id: 1630631 },
+        { name: "Jordan Hawkins", pos: ["SG"], ovr: 77, id: 1641722 },
+        { name: "Daniel Theis", pos: ["C"], ovr: 76, id: 1628464 },
+        { name: "Jeremiah Robinson-Earl", pos: ["PF", "C"], ovr: 76, id: 1630526 },
+        { name: "Yves Missi", pos: ["C"], ovr: 75, id: 1642274 },
+        { name: "Javonte Green", pos: ["SF"], ovr: 75, id: 1629750 },
+        { name: "Antonio Reeves", pos: ["SG"], ovr: 73, id: 1641810 },
+        { name: "Jamal Cain", pos: ["SF"], ovr: 73, id: 1631288 },
+        { name: "Brandon Boston Jr.", pos: ["SG"], ovr: 73, id: 1630527 }
+      ],
+      "NYK": [
+        { name: "Jalen Brunson", pos: ["PG"], ovr: 93, id: 1628973 },
+        { name: "Karl-Anthony Towns", pos: ["C", "PF"], ovr: 92, id: 1626157 },
+        { name: "OG Anunoby", pos: ["SF", "PF"], ovr: 87, id: 1628384 },
+        { name: "Mikal Bridges", pos: ["SF", "SG"], ovr: 85, id: 1628969 },
+        { name: "Josh Hart", pos: ["SG", "SF"], ovr: 83, id: 1628404 },
+        { name: "Mitchell Robinson", pos: ["C"], ovr: 80, id: 1629011 },
+        { name: "Miles McBride", pos: ["PG"], ovr: 79, id: 1630540 },
+        { name: "Precious Achiuwa", pos: ["PF", "C"], ovr: 78, id: 1630173 },
+        { name: "Cameron Payne", pos: ["PG"], ovr: 76, id: 1626166 },
+        { name: "Landry Shamet", pos: ["SG"], ovr: 76, id: 1629013 },
+        { name: "Jericho Sims", pos: ["C"], ovr: 75, id: 1630579 },
+        { name: "Tyler Kolek", pos: ["PG"], ovr: 74, id: 1642278 },
+        { name: "Pacôme Dadiet", pos: ["SF"], ovr: 73, id: 1642359 },
+        { name: "Ariel Hukporti", pos: ["C"], ovr: 73, id: 1630574 },
+        { name: "Jacob Toppin", pos: ["PF"], ovr: 72, id: 1631210 }
+      ],
+      "OKC": [
+        { name: "Shai Gilgeous-Alexander", pos: ["PG", "SG"], ovr: 97, id: 1628983 },
+        { name: "Jalen Williams", pos: ["SF", "PF"], ovr: 90, id: 1631114 },
+        { name: "Chet Holmgren", pos: ["C", "PF"], ovr: 88, id: 1631096 },
+        { name: "Isaiah Hartenstein", pos: ["C"], ovr: 83, id: 1628392 },
+        { name: "Alex Caruso", pos: ["SG", "PG"], ovr: 82, id: 1627936 },
+        { name: "Luguentz Dort", pos: ["SF", "SG"], ovr: 82, id: 1629652 },
+        { name: "Cason Wallace", pos: ["PG", "SG"], ovr: 80, id: 1641717 },
+        { name: "Isaiah Joe", pos: ["SG"], ovr: 79, id: 1630198 },
+        { name: "Aaron Wiggins", pos: ["SG", "SF"], ovr: 79, id: 1630598 },
+        { name: "Kenrich Williams", pos: ["PF", "SF"], ovr: 77, id: 1629026 },
+        { name: "Jaylin Williams", pos: ["C", "PF"], ovr: 76, id: 1631119 },
+        { name: "Ousmane Dieng", pos: ["SF", "PF"], ovr: 75, id: 1631172 },
+        { name: "Dillon Jones", pos: ["SF"], ovr: 74, id: 1641794 },
+        { name: "Ajay Mitchell", pos: ["PG"], ovr: 74, id: 1642349 },
+        { name: "Nikola Topić", pos: ["PG"], ovr: 74, id: 1642260 }
+      ],
+      "ORL": [
+        { name: "Paolo Banchero", pos: ["PF"], ovr: 89, id: 1631094 },
+        { name: "Franz Wagner", pos: ["SF"], ovr: 86, id: 1630532 },
+        { name: "Jalen Suggs", pos: ["PG", "SG"], ovr: 83, id: 1630591 },
+        { name: "Kentavious Caldwell-Pope", pos: ["SG"], ovr: 81, id: 203484 },
+        { name: "Jonathan Isaac", pos: ["PF", "C"], ovr: 80, id: 1628371 },
+        { name: "Wendell Carter Jr.", pos: ["C"], ovr: 80, id: 1628976 },
+        { name: "Moritz Wagner", pos: ["C", "PF"], ovr: 80, id: 1629021 },
+        { name: "Cole Anthony", pos: ["PG"], ovr: 79, id: 1630175 },
+        { name: "Goga Bitadze", pos: ["C"], ovr: 78, id: 1629048 },
+        { name: "Anthony Black", pos: ["PG", "SG"], ovr: 78, id: 1641710 },
+        { name: "Gary Harris", pos: ["SG"], ovr: 76, id: 203914 },
+        { name: "Tristan da Silva", pos: ["SF", "PF"], ovr: 76, id: 1641783 },
+        { name: "Jett Howard", pos: ["SG"], ovr: 74, id: 1641724 },
+        { name: "Caleb Houstan", pos: ["SF"], ovr: 74, id: 1631216 },
+        { name: "Cory Joseph", pos: ["PG"], ovr: 73, id: 202709 }
+      ],
+      "PHI": [
+        { name: "Joel Embiid", pos: ["C"], ovr: 95, id: 203954 },
+        { name: "Paul George", pos: ["SF", "PF"], ovr: 89, id: 202331 },
+        { name: "Tyrese Maxey", pos: ["PG", "SG"], ovr: 88, id: 1630178 },
+        { name: "Kelly Oubre Jr.", pos: ["SF", "SG"], ovr: 82, id: 1626162 },
+        { name: "Caleb Martin", pos: ["SF", "PF"], ovr: 79, id: 1628997 },
+        { name: "Andre Drummond", pos: ["C"], ovr: 79, id: 203083 },
+        { name: "Guerschon Yabusele", pos: ["PF"], ovr: 78, id: 1627824 },
+        { name: "Kyle Lowry", pos: ["PG"], ovr: 78, id: 200768 },
+        { name: "Eric Gordon", pos: ["SG"], ovr: 76, id: 201569 },
+        { name: "Reggie Jackson", pos: ["PG"], ovr: 76, id: 202704 },
+        { name: "KJ Martin", pos: ["SF", "PF"], ovr: 75, id: 1630231 },
+        { name: "Ricky Council IV", pos: ["SG"], ovr: 75, id: 1641741 },
+        { name: "Jared McCain", pos: ["PG", "SG"], ovr: 76, id: 1642272 },
+        { name: "Adem Bona", pos: ["C"], ovr: 74, id: 1641737 },
+        { name: "Jeff Dowtin Jr.", pos: ["PG"], ovr: 73, id: 1630288 }
+      ],
+      "PHX": [
+        { name: "Kevin Durant", pos: ["PF", "SF"], ovr: 94, id: 201142 },
+        { name: "Devin Booker", pos: ["SG", "PG"], ovr: 91, id: 1626164 },
+        { name: "Bradley Beal", pos: ["SG"], ovr: 84, id: 203078 },
+        { name: "Jusuf Nurkić", pos: ["C"], ovr: 82, id: 203994 },
+        { name: "Tyus Jones", pos: ["PG"], ovr: 81, id: 1626145 },
+        { name: "Grayson Allen", pos: ["SG"], ovr: 79, id: 1628960 },
+        { name: "Royce O'Neale", pos: ["SF", "PF"], ovr: 78, id: 1626220 },
+        { name: "Mason Plumlee", pos: ["C"], ovr: 76, id: 203486 },
+        { name: "Monte Morris", pos: ["PG"], ovr: 76, id: 1628420 },
+        { name: "Josh Okogie", pos: ["SG", "SF"], ovr: 76, id: 1629006 },
+        { name: "Bol Bol", pos: ["PF", "C"], ovr: 76, id: 1629626 },
+        { name: "Ryan Dunn", pos: ["SF"], ovr: 75, id: 1642346 },
+        { name: "Oso Ighodaro", pos: ["C"], ovr: 74, id: 1642345 },
+        { name: "Damion Lee", pos: ["SG"], ovr: 74, id: 1627814 },
+        { name: "Collin Gillespie", pos: ["PG"], ovr: 74, id: 1631221 }
+      ],
+      "POR": [
+        { name: "Anfernee Simons", pos: ["SG", "PG"], ovr: 83, id: 1629014 },
+        { name: "Jerami Grant", pos: ["PF", "SF"], ovr: 83, id: 203924 },
+        { name: "Deandre Ayton", pos: ["C"], ovr: 82, id: 1629028 },
+        { name: "Scoot Henderson", pos: ["PG"], ovr: 80, id: 1630703 },
+        { name: "Shaedon Sharpe", pos: ["SG"], ovr: 80, id: 1631101 },
+        { name: "Deni Avdija", pos: ["SF", "PF"], ovr: 81, id: 1630166 },
+        { name: "Robert Williams III", pos: ["C"], ovr: 79, id: 1629057 },
+        { name: "Donovan Clingan", pos: ["C"], ovr: 78, id: 1642270 },
+        { name: "Toumani Camara", pos: ["SF", "PF"], ovr: 78, id: 1641739 },
+        { name: "Matisse Thybulle", pos: ["SG", "SF"], ovr: 76, id: 1629680 },
+        { name: "Jabari Walker", pos: ["PF"], ovr: 76, id: 1631133 },
+        { name: "Duop Reath", pos: ["C"], ovr: 75, id: 1641871 },
+        { name: "Kris Murray", pos: ["SF", "PF"], ovr: 75, id: 1631200 },
+        { name: "Dalano Banton", pos: ["PG", "SG"], ovr: 75, id: 1630625 },
+        { name: "Rayan Rupert", pos: ["SG"], ovr: 73, id: 1641712 }
+      ],
+      "SAC": [
+        { name: "De'Aaron Fox", pos: ["PG"], ovr: 88, id: 1628368 },
+        { name: "Domantas Sabonis", pos: ["C", "PF"], ovr: 88, id: 1627734 },
+        { name: "DeMar DeRozan", pos: ["SF", "PF"], ovr: 87, id: 201942 },
+        { name: "Malik Monk", pos: ["SG"], ovr: 81, id: 1628370 },
+        { name: "Keegan Murray", pos: ["PF", "SF"], ovr: 82, id: 1631099 },
+        { name: "Keon Ellis", pos: ["SG", "PG"], ovr: 78, id: 1631165 },
+        { name: "Trey Lyles", pos: ["PF", "C"], ovr: 77, id: 1626168 },
+        { name: "Kevin Huerter", pos: ["SG"], ovr: 77, id: 1628989 },
+        { name: "Alex Len", pos: ["C"], ovr: 75, id: 203458 },
+        { name: "Devin Carter", pos: ["PG"], ovr: 75, id: 1642269 },
+        { name: "Doug McDermott", pos: ["SF"], ovr: 75, id: 203926 },
+        { name: "Jordan McLaughlin", pos: ["PG"], ovr: 75, id: 1629162 },
+        { name: "Jalen McDaniels", pos: ["PF"], ovr: 74, id: 1629667 },
+        { name: "Colby Jones", pos: ["SG"], ovr: 74, id: 1641732 },
+        { name: "Orlando Robinson", pos: ["C"], ovr: 73, id: 1631115 }
+      ],
+      "SAS": [
+        { name: "Victor Wembanyama", pos: ["C", "PF"], ovr: 97, id: 1641705 },
+        { name: "Chris Paul", pos: ["PG"], ovr: 83, id: 101108 },
+        { name: "Devin Vassell", pos: ["SG"], ovr: 83, id: 1630170 },
+        { name: "Keldon Johnson", pos: ["SF", "PF"], ovr: 81, id: 1629640 },
+        { name: "Harrison Barnes", pos: ["PF", "SF"], ovr: 80, id: 203084 },
+        { name: "Jeremy Sochan", pos: ["PF"], ovr: 80, id: 1631110 },
+        { name: "Stephon Castle", pos: ["PG", "SG"], ovr: 78, id: 1642264 },
+        { name: "Tre Jones", pos: ["PG"], ovr: 78, id: 1630200 },
+        { name: "Zach Collins", pos: ["C", "PF"], ovr: 78, id: 1628380 },
+        { name: "Julian Champagnie", pos: ["SF"], ovr: 76, id: 1630577 },
+        { name: "Malaki Branham", pos: ["SG"], ovr: 76, id: 1631103 },
+        { name: "Blake Wesley", pos: ["PG", "SG"], ovr: 75, id: 1631104 },
+        { name: "Sandro Mamukelashvili", pos: ["C", "PF"], ovr: 76, id: 1630572 },
+        { name: "Charles Bassey", pos: ["C"], ovr: 75, id: 1629646 },
+        { name: "Sidy Cissoko", pos: ["SG"], ovr: 73, id: 1631321 }
+      ],
+      "TOR": [
+        { name: "Scottie Barnes", pos: ["SF", "PF"], ovr: 86, id: 1630567 },
+        { name: "RJ Barrett", pos: ["SG", "SF"], ovr: 83, id: 1629628 },
+        { name: "Jakob Poeltl", pos: ["C"], ovr: 82, id: 1627751 },
+        { name: "Immanuel Quickley", pos: ["PG"], ovr: 82, id: 1630193 },
+        { name: "Gradey Dick", pos: ["SG"], ovr: 79, id: 1641711 },
+        { name: "Bruce Brown", pos: ["SG", "SF"], ovr: 78, id: 1628971 },
+        { name: "Kelly Olynyk", pos: ["C", "PF"], ovr: 78, id: 203482 },
+        { name: "Davion Mitchell", pos: ["PG"], ovr: 77, id: 1630558 },
+        { name: "Chris Boucher", pos: ["PF", "C"], ovr: 77, id: 1628449 },
+        { name: "Ochai Agbaji", pos: ["SG"], ovr: 76, id: 1630534 },
+        { name: "Ja'Kobe Walter", pos: ["SG"], ovr: 75, id: 1642266 },
+        { name: "Jonathan Mogbo", pos: ["PF"], ovr: 75, id: 1642367 },
+        { name: "Jamal Shead", pos: ["PG"], ovr: 75, id: 1642347 },
+        { name: "Garrett Temple", pos: ["SG"], ovr: 73, id: 202066 },
+        { name: "Chomche Ulrich", pos: ["C"], ovr: 72, id: 1642279 }
+      ],
+      "UTA": [
+        { name: "Lauri Markkanen", pos: ["PF"], ovr: 86, id: 1628374 },
+        { name: "Collin Sexton", pos: ["SG", "PG"], ovr: 83, id: 1629012 },
+        { name: "John Collins", pos: ["PF", "C"], ovr: 82, id: 1628381 },
+        { name: "Walker Kessler", pos: ["C"], ovr: 81, id: 1631117 },
+        { name: "Jordan Clarkson", pos: ["SG"], ovr: 80, id: 203903 },
+        { name: "Keyonte George", pos: ["PG"], ovr: 79, id: 1641718 },
+        { name: "Taylor Hendricks", pos: ["PF"], ovr: 77, id: 1641707 },
+        { name: "Cody Williams", pos: ["SF"], ovr: 76, id: 1642262 },
+        { name: "Brice Sensabaugh", pos: ["SF"], ovr: 76, id: 1641729 },
+        { name: "Isaiah Collier", pos: ["PG"], ovr: 75, id: 1642268 },
+        { name: "Drew Eubanks", pos: ["C"], ovr: 75, id: 1629234 },
+        { name: "Kyle Filipowski", pos: ["C", "PF"], ovr: 75, id: 1642271 },
+        { name: "Svi Mykhailiuk", pos: ["SF"], ovr: 74, id: 1629004 },
+        { name: "Johnny Juzang", pos: ["SG"], ovr: 74, id: 1630548 },
+        { name: "Micah Potter", pos: ["C"], ovr: 73, id: 1630695 }
+      ],
+      "WAS": [
+        { name: "Kyle Kuzma", pos: ["PF", "SF"], ovr: 83, id: 1628398 },
+        { name: "Jordan Poole", pos: ["SG", "PG"], ovr: 82, id: 1629673 },
+        { name: "Jonas Valančiūnas", pos: ["C"], ovr: 82, id: 202685 },
+        { name: "Malcolm Brogdon", pos: ["PG", "SG"], ovr: 80, id: 1627763 },
+        { name: "Alex Sarr", pos: ["C", "PF"], ovr: 79, id: 1642259 },
+        { name: "Bilal Coulibaly", pos: ["SF", "SG"], ovr: 79, id: 1641731 },
+        { name: "Corey Kispert", pos: ["SF"], ovr: 77, id: 1630557 },
+        { name: "Bub Carrington", pos: ["PG"], ovr: 76, id: 1642267 },
+        { name: "Marvin Bagley III", pos: ["C", "PF"], ovr: 77, id: 1628963 },
+        { name: "Saddiq Bey", pos: ["SF", "PF"], ovr: 77, id: 1630180 },
+        { name: "Kyshawn George", pos: ["SF"], ovr: 75, id: 1642273 },
+        { name: "Richaun Holmes", pos: ["C"], ovr: 76, id: 1626158 },
+        { name: "Johnny Davis", pos: ["SG"], ovr: 74, id: 1631098 },
+        { name: "Patrick Baldwin Jr.", pos: ["PF"], ovr: 73, id: 1631116 },
+        { name: "Anthony Gill", pos: ["PF"], ovr: 73, id: 1630264 }
+      ]
+    };
+
+    function determineRarityByOvr(ovr) {
+      if (ovr >= 93) return "UR";
+      if (ovr >= 88) return "SSR";
+      if (ovr >= 83) return "SR";
+      if (ovr >= 78) return "R";
+      return "N";
+    }
+
+    const ALL_30_TEAMS = Object.keys(TEAM_DATA);
+    const NBA_PLAYERS = [];
+    ALL_30_TEAMS.forEach(team => {
+      TEAM_DATA[team].forEach(p => {
+        NBA_PLAYERS.push({
+          name: p.name,
+          team: team,
+          positions: p.pos,
+          baseOvr: p.ovr,
+          ovr: p.ovr,
+          rarity: determineRarityByOvr(p.ovr),
+          nbaId: p.id
+        });
+      });
+    });
+
+    const TOEIC_WORDS = [
+      { id: 1, word: "incentive", meaning: "誘因、動機", category: "Finance", example: "The draft lottery alters tanking incentives.", box: 1 },
+      { id: 2, word: "comply with", meaning: "遵守、符合", category: "HR", example: "All clubs must comply with salary regulations.", box: 1 },
+      { id: 3, word: "agenda", meaning: "議程、討論事項", category: "HR", example: "The agenda for tomorrow's meeting has been distributed.", box: 1 },
+      { id: 4, word: "reimburse", meaning: "核銷、償還", category: "Finance", example: "The company will reimburse your travel expenses.", box: 1 },
+      { id: 5, word: "contingency", meaning: "緊急意外、應急措施", category: "Finance", example: "We need a contingency plan in case of supply delays.", box: 1 },
+      { id: 6, word: "itinerary", meaning: "旅行行程表", category: "Travel", example: "Please review the business trip itinerary.", box: 1 },
+      { id: 7, word: "procurement", meaning: "採購、取得", category: "Logistics", example: "The procurement team negotiated lower shipping rates.", box: 1 }
+    ];
+
+    /* =====================================================
+       03. STATE
+    ===================================================== */
+    const defaultState = {
+currentInventorySort: 'ovr',
+inventorySortOrder: 'desc', 
+inventoryFilters: {
+  position: 'ALL',
+  team: 'ALL',
+  rarity: 'ALL'
+},
+      inventory: [],
+      startingLineup: { PG: null, SG: null, SF: null, PF: null, C: null },
+      benchLineup: [null, null, null, null, null, null],
+      tickets: 10,
+      scoutPoints: 0,
+      streak: 1,
+      isAdmin: false,
+      currentInventorySort: 'ovr',
+      claimedTeamRewards: [],
+      redeemedCodes: [],
+      season: {
+        lastSimDate: '',
+        lastSimRecord: '',
+        lastSimWins: 0,
+        lastSimStreak: 0,
+        lastSimGames: [],
+        lastBoxScores: []
+      },
+      toeic: {
+        totalListening: 0,
+        totalReading: 0,
+        vocabList: [...TOEIC_WORDS],
+        currentQuizIndex: 0,
+        quizStreak: 0,
+        selectedBoxFilter: 'all',
+        isSpellingMode: false
+      }
+    };
+
+    let state = loadGame() || defaultState;
+if (!state.inventorySortOrder) state.inventorySortOrder = 'desc';
+if (!state.inventoryFilters) state.inventoryFilters = { position: 'ALL', team: 'ALL', rarity: 'ALL' };
+    let activeSessionCards = [];
+    let isSimulating = false;
+    let pendingGachaTimes = 1;
+    let pomodoroInterval = null;
+    let pomodoroSecondsLeft = 25 * 60;
+    let isPomodoroRunning = false;
+    let currentPlayoffRound = 0;
+    let playoffTeamsState = [];
+    let isFlipped = false;
+
+    /* =====================================================
+       04. CARD SYSTEM
+    ===================================================== */
+    function createCard(basePlayer, star = 1) {
+      return {
+        ...basePlayer,
+        stars: star,
+        ovr: calculateCardOvr(basePlayer.baseOvr, star),
+        acquiredAt: Date.now()
+      };
+    }
+
+    function calculateCardOvr(baseOvr, star) {
+      return (baseOvr || 70) + Math.max(0, (star - 1) * 2);
+    }
+
+    function upgradePlayerStar(playerName, requestedStar = null) {
+      const curStar = requestedStar || ((state.inventory.find(p => p.name === playerName) || {}).stars || 1);
+      const sameCards = state.inventory.filter(p => p.name === playerName && (p.stars || 1) === curStar);
+      if (sameCards.length < 2) {
+        alert(`❌ ${playerName} ★${curStar} 卡片不足 2 張，無法升星！`);
+        return;
+      }
+
+      let kept = false;
+      state.inventory = state.inventory.filter(p => {
+        if (p.name === playerName && (p.stars || 1) === curStar) {
+          if (!kept) { kept = true; return true; }
+          return false;
+        }
+        return true;
+      });
+
+      const target = state.inventory.find(p => p.name === playerName && (p.stars || 1) === curStar);
+      if (!target) return;
+      target.stars = curStar + 1;
+      target.ovr = calculateCardOvr(target.baseOvr || target.ovr, target.stars);
+
+      confetti({ particleCount: 50 });
+      alert(`🎉 ${playerName} 升星成功！晉升為 ★${target.stars}，OVR ${target.ovr}！`);
+      renderAll();
+      openUpgradeModal();
+    }
+
+    function getHighestStarCards() {
+      const map = new Map();
+      state.inventory.forEach(p => {
+        if (!map.has(p.name)) {
+          map.set(p.name, { ...p });
+        } else {
+          const exist = map.get(p.name);
+          if ((p.stars || 1) > (exist.stars || 1)) {
+            exist.stars = p.stars;
+            exist.ovr = p.ovr;
+            exist.acquiredAt = Math.max(exist.acquiredAt || 0, p.acquiredAt || 0);
+          }
+        }
+      });
+      return Array.from(map.values());
+    }
+
+    function getSortedInventory() {
+let cards = getHighestStarCards();
+
+  // 1. 條件篩選 (Filter)
+  const filters = state.inventoryFilters || { position: 'ALL', team: 'ALL', rarity: 'ALL' };
+  if (filters.position && filters.position !== 'ALL') {
+    cards = cards.filter(c => c.positions && c.positions.includes(filters.position));
+  }
+  if (filters.team && filters.team !== 'ALL') {
+    cards = cards.filter(c => c.team === filters.team);
+  }
+  if (filters.rarity && filters.rarity !== 'ALL') {
+    cards = cards.filter(c => c.rarity === filters.rarity);
+  }
+
+  // 2. 欄位權重定義
+  const rarityRank = { 'UR': 5, 'SSR': 4, 'SR': 3, 'R': 2, 'N': 1 };
+  const posOrder = { 'PG': 1, 'SG': 2, 'SF': 3, 'PF': 4, 'C': 5 };
+  const isAsc = state.inventorySortOrder === 'asc';
+
+  // 3. 排序 (Sort)
+  cards.sort((a, b) => {
+    let diff = 0;
+    if (state.currentInventorySort === 'ovr') {
+      diff = (a.ovr || a.baseOvr) - (b.ovr || b.baseOvr);
+    } else if (state.currentInventorySort === 'recent') {
+      diff = (a.acquiredAt || 0) - (b.acquiredAt || 0);
+    } else if (state.currentInventorySort === 'position') {
+      diff = (posOrder[a.positions[0]] || 9) - (posOrder[b.positions[0]] || 9);
+    } else if (state.currentInventorySort === 'rarity') {
+      diff = (rarityRank[a.rarity] || 0) - (rarityRank[b.rarity] || 0);
+    } else if (state.currentInventorySort === 'name') {
+      return isAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+    }
+    return isAsc ? diff : -diff;
+  });
+
+  return cards;
+}
+
+    function getPlayerImgUrl(nbaId) {
+      return `https://cdn.nba.com/headshots/nba/latest/1040x760/${nbaId}.png`;
+    }
+
+    function getRarityBorder(rarity) {
+      if (rarity === 'UR') return 'border-2 rainbow-glow border-pink-500';
+      if (rarity === 'SSR') return 'border-amber-400 gold-glow';
+      if (rarity === 'SR') return 'border-purple-400 purple-glow';
+      if (rarity === 'R') return 'border-blue-400';
+      return 'border-slate-700';
+    }
+    function adminUnlockAllPlayers() {
+      if (!state.isAdmin) {
+        alert("⚠️ 請先啟用管理員權限！");
+        return;
+      }
+      // 遍歷 450 名球員，將尚未擁有的卡片全數以 ★1 存入背包
+      NBA_PLAYERS.forEach(player => {
+        const hasPlayer = state.inventory.some(p => p.name === player.name);
+        if (!hasPlayer) {
+          state.inventory.push(createCard(player, 1));
+        }
+      });
+      confetti({ particleCount: 200, spread: 100 });
+      alert(`⚡ 已成功解鎖全聯盟 30 隊共 ${state.inventory.length} 張球員卡！`);
+      renderAll();
+}
+
+    /* =====================================================
+       05. TEAM SYSTEM
+    ===================================================== */
+    function calculateTeamOverall() {
+      const positions = ['PG', 'SG', 'SF', 'PF', 'C'];
+      const players = [];
+      let totalEffectiveOvr = 0;
+
+      positions.forEach(pos => {
+        const p = state.startingLineup[pos];
+        if (!p) return;
+        const rawOvr = Number(p.ovr ?? p.baseOvr ?? 0);
+        const effectiveOvr = rawOvr - (p.positions.includes(pos) ? 0 : 5);
+        players.push(p);
+        totalEffectiveOvr += effectiveOvr;
+      });
+
+      state.benchLineup.forEach(p => {
+        if (!p) return;
+        players.push(p);
+        totalEffectiveOvr += Number(p.ovr ?? p.baseOvr ?? 0);
+      });
+
+      const filled = players.length;
+      if (!filled) return { overall: 0, filled: 0, chemistry: 0, onFire: 0 };
+
+      const chemistry = calculateChemistry(players);
+      const onFireBonus = isOnFire() ? 2 : 0;
+      const averageOvr = Math.round(totalEffectiveOvr / filled);
+      return { overall: averageOvr + chemistry + onFireBonus, filled, chemistry, onFire: onFireBonus };
+    }
+
+    function calculateChemistry(players = []) {
+      const counts = {};
+      players.forEach(p => counts[p.team] = (counts[p.team] || 0) + 1);
+      let chem = 0;
+      Object.values(counts).forEach(c => chem += Math.floor(c / 3));
+      return chem;
+    }
+
+    function isOnFire() {
+      return !document.getElementById('onFireBadge')?.classList.contains('hidden');
+    }
+
+    function isPlayerInRoster(name) {
+      return Object.values(state.startingLineup).some(p => p && p.name === name) || state.benchLineup.some(p => p && p.name === name);
+    }
+
+    function removePlayerFromEntireRoster(playerName) {
+      Object.keys(state.startingLineup).forEach(pos => {
+        if (state.startingLineup[pos] && state.startingLineup[pos].name === playerName) state.startingLineup[pos] = null;
+      });
+      state.benchLineup = state.benchLineup.map(p => (p && p.name === playerName ? null : p));
+    }
+
+    function assignStarter(pos, playerObj) {
+      removePlayerFromEntireRoster(playerObj.name);
+      state.startingLineup[pos] = playerObj;
+      renderAll();
+    }
+
+    function removeStarter(pos) {
+      state.startingLineup[pos] = null;
+      renderAll();
+    }
+
+    function addBench(playerObj) {
+      removePlayerFromEntireRoster(playerObj.name);
+      const emptyIdx = state.benchLineup.findIndex(slot => slot === null);
+      if (emptyIdx === -1) { alert("替補席已滿！"); return; }
+      state.benchLineup[emptyIdx] = playerObj;
+      renderAll();
+    }
+
+    function removeBench(idx) {
+      state.benchLineup[idx] = null;
+      renderAll();
+    }
+
+    function autoSetHighestOvrLineup() {
+      if (state.inventory.length === 0) { alert("背包無球員！"); return; }
+      state.startingLineup = { PG: null, SG: null, SF: null, PF: null, C: null };
+      state.benchLineup = [null, null, null, null, null, null];
+      const available = getSortedInventory().sort((a, b) => (b.ovr || b.baseOvr) - (a.ovr || a.baseOvr));
+      const usedNames = new Set();
+      ['PG', 'SG', 'SF', 'PF', 'C'].forEach(pos => {
+        const c = available.find(p => !usedNames.has(p.name) && p.positions.includes(pos));
+        if (c) { state.startingLineup[pos] = c; usedNames.add(c.name); }
+      });
+      ['PG', 'SG', 'SF', 'PF', 'C'].forEach(pos => {
+        if (!state.startingLineup[pos]) {
+          const f = available.find(p => !usedNames.has(p.name));
+          if (f) { state.startingLineup[pos] = f; usedNames.add(f.name); }
+        }
+      });
+      for (let i = 0; i < 6; i++) {
+        const b = available.find(p => !usedNames.has(p.name));
+        if (b) { state.benchLineup[i] = b; usedNames.add(b.name); }
+      }
+      renderAll();
+    }
+// 開始拖曳卡片時記錄球員名字
+function handleCardDragStart(e, playerName) {
+  e.dataTransfer.setData("text/plain", playerName);
+  e.dataTransfer.effectAllowed = "move";
+}
+
+// 允許拖曳進入放置區
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+}
+
+// 先發位置放下卡片（支援互換）
+function handleStarterDrop(e, targetPos) {
+  e.preventDefault();
+  const draggedName = e.dataTransfer.getData("text/plain");
+  if (!draggedName) return;
+
+  const draggedPlayer = state.inventory.find(p => p.name === draggedName);
+  if (!draggedPlayer) return;
+
+  const existingPlayer = state.startingLineup[targetPos];
+
+  // 1. 如果是同一張卡拖到自己所在位置，不做任何事
+  if (existingPlayer && existingPlayer.name === draggedName) return;
+
+  // 2. 尋找被拖動的球員目前是否已經在先發或替補陣容中
+  let sourcePos = null;
+  let sourceBenchIdx = -1;
+
+  Object.keys(state.startingLineup).forEach(pos => {
+    if (state.startingLineup[pos] && state.startingLineup[pos].name === draggedName) {
+      sourcePos = pos;
+    }
+  });
+
+  state.benchLineup.forEach((p, idx) => {
+    if (p && p.name === draggedName) {
+      sourceBenchIdx = idx;
+    }
+  });
+
+  // 3. 執行互換邏輯
+  if (sourcePos !== null) {
+    // 來源是另一個先發位置：雙方先發互換！
+    state.startingLineup[sourcePos] = existingPlayer; // 原本的球員換去對方的先發位，不掉出陣容
+    state.startingLineup[targetPos] = draggedPlayer;
+  } else if (sourceBenchIdx !== -1) {
+    // 來源是替補席：先發與替補互換！
+    state.benchLineup[sourceBenchIdx] = existingPlayer; // 原先發球員換去替補席，不掉出陣容
+    state.startingLineup[targetPos] = draggedPlayer;
+  } else {
+    // 來源是背包庫存：原位置球員被頂替回背包
+    removePlayerFromEntireRoster(draggedPlayer.name);
+    state.startingLineup[targetPos] = draggedPlayer;
+  }
+
+  renderAll();
+}
+
+// 替補位置放下卡片（支援互換）
+function handleBenchDrop(e, targetBenchIdx) {
+  e.preventDefault();
+  const draggedName = e.dataTransfer.getData("text/plain");
+  if (!draggedName) return;
+
+  const draggedPlayer = state.inventory.find(p => p.name === draggedName);
+  if (!draggedPlayer) return;
+
+  const existingPlayer = state.benchLineup[targetBenchIdx];
+
+  if (existingPlayer && existingPlayer.name === draggedName) return;
+
+  let sourcePos = null;
+  let sourceBenchIdx = -1;
+
+  Object.keys(state.startingLineup).forEach(pos => {
+    if (state.startingLineup[pos] && state.startingLineup[pos].name === draggedName) {
+      sourcePos = pos;
+    }
+  });
+
+  state.benchLineup.forEach((p, idx) => {
+    if (p && p.name === draggedName) {
+      sourceBenchIdx = idx;
+    }
+  });
+
+  // 執行互換邏輯
+  if (sourcePos !== null) {
+    // 來源是先發：先發移到此替補位，原替補去先發
+    state.startingLineup[sourcePos] = existingPlayer;
+    state.benchLineup[targetBenchIdx] = draggedPlayer;
+  } else if (sourceBenchIdx !== -1) {
+    // 來源是其他替補：兩替補席位互換
+    state.benchLineup[sourceBenchIdx] = existingPlayer;
+    state.benchLineup[targetBenchIdx] = draggedPlayer;
+  } else {
+    // 來源是背包庫存
+    removePlayerFromEntireRoster(draggedPlayer.name);
+    state.benchLineup[targetBenchIdx] = draggedPlayer;
+  }
+
+  renderAll();
+}
+
+    /* =====================================================
+       06. GACHA SYSTEM
+    ===================================================== */
+    function rollRarity() {
+      const rand = Math.random() * 100.0;
+      if (rand < GACHA_RATES.UR) return "UR";
+      if (rand < GACHA_RATES.UR + GACHA_RATES.SSR) return "SSR";
+      if (rand < GACHA_RATES.UR + GACHA_RATES.SSR + GACHA_RATES.SR) return "SR";
+      if (rand < GACHA_RATES.UR + GACHA_RATES.SSR + GACHA_RATES.SR + GACHA_RATES.R) return "R";
+      return "N";
+    }
+
+    function createGachaCard() {
+      const rarity = rollRarity();
+      const pool = NBA_PLAYERS.filter(p => p.rarity === rarity);
+      const player = pool[Math.floor(Math.random() * pool.length)] || NBA_PLAYERS[0];
+      return createCard(player, 1);
+    }
+
+    function rollTenCards() {
+      return Array.from({ length: 10 }, () => createGachaCard());
+    }
+
+    function launchGachaWithShopAnimation(times) {
+      if (!state.isAdmin && state.tickets < times) { alert("抽卡券不足！"); return; }
+      pendingGachaTimes = times;
+      document.getElementById('cardShopOverlay').classList.remove('hidden');
+    }
+
+    function ripShopPack() {
+      const pack = document.getElementById('shopPackVisual');
+      pack.classList.add('pack-ripping');
+      playSound('rip');
+      setTimeout(() => {
+        document.getElementById('cardShopOverlay').classList.add('hidden');
+        pack.classList.remove('pack-ripping');
+        executeGacha(pendingGachaTimes);
+      }, 650);
+    }
+
+    function executeGacha(times) {
+      if (!state.isAdmin) state.tickets -= times;
+      activeSessionCards = [];
+      const cards = times === 10 ? rollTenCards() : [createGachaCard()];
+      cards.forEach(card => {
+        state.inventory.unshift(card);
+        activeSessionCards.push({ cardData: card, flipped: false });
+      });
+      renderGachaResult(times);
+      renderAll();
+    }
+
+    function getNBALogoSVG() {
+      return `
+        <svg class="w-10 h-16 drop-shadow-md select-none" viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100" height="200" rx="12" fill="#1D428A"/>
+          <path d="M50 0H100V200H50C50 200 50 0 50 0Z" fill="#C8102E"/>
+          <circle cx="50" cy="55" r="14" fill="white"/>
+          <path d="M46 72C38 85 30 105 24 135C35 130 45 125 52 118L44 155L38 190H52L58 148L68 128C74 122 80 115 82 102C84 88 75 80 64 76C56 74 50 72 46 72Z" fill="white"/>
+          <circle cx="78" cy="118" r="8" fill="white"/>
+        </svg>
+      `;
+    }
+
+    function getGachaBackClass(card) {
+      if (card && card.isLegend) return 'border-2 silver-black-glow';
+      if (card && card.rarity === 'UR') return 'border-2 rainbow-glow border-pink-500';
+      if (card && card.rarity === 'SSR') return 'border-2 gold-glow border-amber-400';
+      if (card && card.rarity === 'SR') return 'border-2 purple-glow border-purple-400';
+      if (card && card.rarity === 'R') return 'border-2 border-blue-400 gacha-blue-glow';
+      return 'border-2 border-slate-700 gacha-normal-glow';
+    }
+
+    function flipCardDirect(idx, id) {
+      if (activeSessionCards[idx].flipped) return;
+      activeSessionCards[idx].flipped = true;
+      playSound('flip');
+      const el = document.getElementById(id);
+      if (el) el.classList.add('rotate-y-180');
+      if (activeSessionCards[idx].cardData.rarity === 'UR' || activeSessionCards[idx].cardData.rarity === 'SSR') {
+        playSound('ur_ssr');
+        confetti({ particleCount: 80 });
+      }
+    }
+
+    function revealAllCards() {
+      activeSessionCards.forEach((item, idx) => {
+        const id = activeSessionCards.length === 1 ? 'single-card' : `ten-${idx}`;
+        flipCardDirect(idx, id);
+      });
+    }
+
+    function closeGachaModal() {
+      document.getElementById('gachaModal').classList.add('hidden');
+      renderAll();
+    }
+
+    /* =====================================================
+       07. GAME SYSTEM
+    ===================================================== */
+    function getTodayString() {
+      const d = new Date();
+      return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    }
+
+    function simulateGame(teamOvr, oppOvr) {
+      const win = Math.random() < (0.5 + (teamOvr - oppOvr) * 0.035);
+      let myScore = Math.floor(100 + Math.random() * 20 + (teamOvr - 80));
+      let oppScore = Math.floor(100 + Math.random() * 20 + (oppOvr - 80));
+      if (win && myScore <= oppScore) myScore = oppScore + Math.floor(Math.random() * 6 + 1);
+      if (!win && myScore >= oppScore) oppScore = myScore + Math.floor(Math.random() * 6 + 1);
+      return { win, myScore, oppScore };
+    }
+
+    function start82GamesSimulation() {
+      if (isSimulating) return;
+      const today = getTodayString();
+      if (!state.isAdmin && state.season.lastSimDate === today) { alert("今天已經進行過例行賽模擬囉！"); return; }
+
+      const teamOvr = calculateTeamOverall().overall;
+      isSimulating = true;
+      const games = [];
+      let simulatedWins = 0, maxS = 0, curS = 0;
+
+      for (let i = 0; i < 82; i++) {
+        const oppTeam = ALL_30_TEAMS[Math.floor(Math.random() * ALL_30_TEAMS.length)];
+        const oppOvr = 78 + Math.floor(Math.random() * 14);
+        const { win, myScore, oppScore } = simulateGame(teamOvr, oppOvr);
+        if (win) { simulatedWins++; curS++; if (curS > maxS) maxS = curS; } else curS = 0;
+        games.push({ win, oppTeam, myScore, oppScore });
+      }
+
+      let idx = 0;
+      const interval = setInterval(() => {
+        if (idx >= 82) {
+          clearInterval(interval);
+          isSimulating = false;
+          state.season.lastSimDate = today;
+          state.season.lastSimRecord = `${simulatedWins} 勝 ${82 - simulatedWins} 敗`;
+          state.season.lastSimWins = simulatedWins;
+          state.season.lastSimStreak = maxS;
+          state.season.lastSimGames = games;
+
+// 1. 取得先發與替補陣容名單
+          const starters = Object.values(state.startingLineup).filter(Boolean);
+          const bench = state.benchLineup.filter(Boolean);
+
+          // 2. 智慧遴選各項獲獎者
+          const scorer = starters.length > 0 
+            ? [...starters].sort((a, b) => (b.ovr || b.baseOvr) - (a.ovr || a.baseOvr))[0] 
+            : { name: "隊伍王牌", ovr: 80 };
+
+          const rebounder = starters.find(p => p.positions.some(pos => ['C', 'PF'].includes(pos))) 
+            || starters[1] || scorer;
+
+          const playmaker = starters.find(p => p.positions.some(pos => ['PG', 'SG'].includes(pos))) 
+            || starters[2] || scorer;
+
+          const blocker = starters.find(p => p !== rebounder && p.positions.some(pos => ['C', 'PF'].includes(pos))) 
+            || rebounder;
+
+          const stealer = starters.find(p => p !== playmaker && p.positions.some(pos => ['PG', 'SG', 'SF'].includes(pos))) 
+            || playmaker;
+
+          const sixthMan = bench.length > 0 
+            ? [...bench].sort((a, b) => (b.ovr || b.baseOvr) - (a.ovr || a.baseOvr))[0] 
+            : { name: "暫無替補", ovr: 75 };
+
+          // 3. 真實數據計算
+          const ptsVal = (22.0 + ((scorer.ovr || 80) - 75) * 0.42 + (Math.random() * 2 - 1)).toFixed(1);
+          const rebVal = (8.5 + ((rebounder.ovr || 80) - 75) * 0.22 + (Math.random() * 1.2 - 0.6)).toFixed(1);
+          const astVal = (6.5 + ((playmaker.ovr || 80) - 75) * 0.24 + (Math.random() * 1.0 - 0.5)).toFixed(1);
+          const stlVal = (1.2 + ((stealer.ovr || 80) - 75) * 0.04 + (Math.random() * 0.3)).toFixed(1);
+          const blkVal = (1.2 + ((blocker.ovr || 80) - 75) * 0.06 + (Math.random() * 0.4)).toFixed(1);
+
+          // 4. DPOY 評選邏輯
+          const dpoy = (parseFloat(blkVal) >= 2.0) ? blocker : ((parseFloat(stlVal) >= 1.8) ? stealer : blocker);
+          const dpoyStat = (dpoy === blocker) ? `${blkVal} 鍋 ` : `${stlVal} 抄 `;
+
+          // 5. 寫入 8 大榮譽榜
+          state.season.lastBoxScores = [
+            { title: "得分王 (PTS)", player: scorer.name, stat: `${ptsVal} 分` },
+            { title: "籃板王 (REB)", player: rebounder.name, stat: `${rebVal} 板` },
+            { title: "助攻王 (AST)", player: playmaker.name, stat: `${astVal} 助` },
+            { title: "抄截王 (STL)", player: stealer.name, stat: `${stlVal} 抄` },
+            { title: "火鍋王 (BLK)", player: blocker.name, stat: `${blkVal} 鍋` },
+            { title: "最佳防守 (DPOY)", player: dpoy.name, stat: dpoyStat },
+            { title: "最佳第六人 (6MOY)", player: sixthMan.name, stat: `OVR ${sixthMan.ovr || 75}` },
+            { 
+              title: "賽季 MVP", 
+              player: simulatedWins >= 50 ? scorer.name : "競爭遺珠", 
+              stat: simulatedWins >= 50 ? `${simulatedWins}勝 ` : "勝場未達50" 
+            }
+          ];
+          alert(`🏁 例行賽結束！戰績：${state.season.lastSimRecord}`);
+          renderAll();
+          return;
+        }
+
+        const cell = document.getElementById(`game-cell-${idx+1}`);
+        if (cell) {
+          cell.className = games[idx].win ? "h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center text-xs" : "h-6 rounded-md bg-rose-900 text-rose-300 flex items-center justify-center text-xs";
+          cell.innerText = games[idx].win ? "✓" : "✕";
+        }
+        document.getElementById('seasonRecordText').innerText = `${games.slice(0, idx+1).filter(g=>g.win).length} 勝`;
+        idx++;
+      }, 20);
+    }
+
+    function initPlayoffTeams() {
+      playoffTeamsState = [
+        { round: 0, matches: [
+          { teamA: "玩家夢幻隊", seedA: 1, teamB: "Grizzlies", seedB: 8, winsA: 0, winsB: 0, winner: null },
+          { teamA: "Nuggets", seedA: 4, teamB: "Timberwolves", seedB: 5, winsA: 0, winsB: 0, winner: null },
+          { teamA: "Thunder", seedA: 2, teamB: "Kings", seedB: 7, winsA: 0, winsB: 0, winner: null },
+          { teamA: "Lakers", seedA: 3, teamB: "Suns", seedB: 6, winsA: 0, winsB: 0, winner: null },
+          { teamA: "Celtics", seedA: 1, teamB: "Heat", seedB: 8, winsA: 0, winsB: 0, winner: null },
+          { teamA: "Knicks", seedA: 4, teamB: "Pacers", seedB: 5, winsA: 0, winsB: 0, winner: null },
+          { teamA: "Bucks", seedA: 2, teamB: "Bulls", seedB: 7, winsA: 0, winsB: 0, winner: null },
+          { teamA: "Cavaliers", seedA: 3, teamB: "76ers", seedB: 6, winsA: 0, winsB: 0, winner: null }
+        ]},
+        { round: 1, matches: [
+          { teamA: "TBD", seedA: "-", teamB: "TBD", seedB: "-", winsA: 0, winsB: 0, winner: null },
+          { teamA: "TBD", seedA: "-", teamB: "TBD", seedB: "-", winsA: 0, winsB: 0, winner: null },
+          { teamA: "TBD", seedA: "-", teamB: "TBD", seedB: "-", winsA: 0, winsB: 0, winner: null },
+          { teamA: "TBD", seedA: "-", teamB: "TBD", seedB: "-", winsA: 0, winsB: 0, winner: null }
+        ]},
+        { round: 2, matches: [
+          { teamA: "TBD", seedA: "-", teamB: "TBD", seedB: "-", winsA: 0, winsB: 0, winner: null },
+          { teamA: "TBD", seedA: "-", teamB: "TBD", seedB: "-", winsA: 0, winsB: 0, winner: null }
+        ]},
+        { round: 3, matches: [
+          { teamA: "TBD", seedA: "-", teamB: "TBD", seedB: "-", winsA: 0, winsB: 0, winner: null }
+        ]}
+      ];
+      currentPlayoffRound = 0;
+    }
+
+    function renderPlayoffBracket() {
+      for (let r = 0; r < 4; r++) {
+        const container = document.getElementById(`bracketRound${r+1}`);
+        const matches = playoffTeamsState[r].matches;
+        container.innerHTML = matches.map(m => `
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-left space-y-1 text-xs">
+            <div class="flex justify-between"><span>(${m.seedA}) ${m.teamA}</span><span class="font-mono font-bold">${m.winsA}</span></div>
+            <div class="flex justify-between"><span>(${m.seedB}) ${m.teamB}</span><span class="font-mono font-bold">${m.winsB}</span></div>
+            ${m.winner ? `<div class="text-[9px] text-emerald-400 font-bold border-t border-slate-800 pt-0.5">晉級: ${m.winner}</div>` : ''}
+          </div>`).join('');
+
+        const btn = document.getElementById(`playoffBtnR${r+1}`);
+        if (r === currentPlayoffRound) {
+          btn.disabled = false;
+          btn.className = "mt-4 bg-amber-500 hover:bg-amber-400 text-black font-bold py-2 rounded-xl text-xs transition";
+        } else {
+          btn.disabled = true;
+          btn.className = "mt-4 bg-slate-800 text-slate-500 font-bold py-2 rounded-xl text-xs cursor-not-allowed";
+        }
+      }
+    }
+
+    function simulatePlayoffRound(roundIdx) {
+      const matches = playoffTeamsState[roundIdx].matches;
+      const teamOvr = calculateTeamOverall().overall;
+      matches.forEach(m => {
+        if (m.winner) return;
+        let wA = 0, wB = 0;
+        while (wA < 4 && wB < 4) {
+          let probA = 0.5;
+          if (m.teamA === "玩家夢幻隊") probA = 0.50 + ((teamOvr - 85) * 0.04);
+          else if (m.teamB === "玩家夢幻隊") probA = 1 - (0.50 + ((teamOvr - 85) * 0.04));
+          if (Math.random() < probA) wA++; else wB++;
+        }
+        m.winsA = wA; m.winsB = wB;
+        m.winner = wA > wB ? m.teamA : m.teamB;
+      });
+
+      if (roundIdx < 3) {
+        const next = playoffTeamsState[roundIdx + 1].matches;
+        matches.forEach((m, idx) => {
+          const target = Math.floor(idx / 2);
+          if (next[target]) {
+            if (idx % 2 === 0) {
+              next[target].teamA = m.winner;
+              next[target].seedA = (m.winner === m.teamA) ? m.seedA : m.seedB;
+            } else {
+              next[target].teamB = m.winner;
+              next[target].seedB = (m.winner === m.teamA) ? m.seedA : m.seedB;
+            }
+          }
+        });
+      }
+
+      currentPlayoffRound++;
+      renderPlayoffBracket();
+
+      if (roundIdx === 3) {
+        if (matches[0].winner === "玩家夢幻隊") {
+          state.tickets += 15;
+          confetti({ particleCount: 300 });
+          playSound('ur_ssr');
+          alert("🏆 恭喜奪得 2026 NBA 總冠軍！獎勵 15 張抽卡券！");
+        } else {
+          alert(`🏀 總決賽落敗：由【${matches[0].winner}】奪冠，獲得參賽獎勵 3 張抽卡券！`);
+          state.tickets += 3;
+        }
+        renderAll();
+      }
+    }
+// 產生玩家自己的陣容代碼
+function exportLineupCode() {
+  const payload = {
+    starters: state.startingLineup,
+    bench: state.benchLineup,
+    ovr: calculateTeamOverall().overall,
+    owner: "挑戰者隊伍"
+  };
+  const code = btoa(encodeURIComponent(JSON.stringify(payload)));
+  navigator.clipboard.writeText(code);
+  alert("📋 陣容代碼已複製到剪貼簿！發給朋友讓他挑戰你吧！");
+}
+
+// 匯入對手代碼並開戰
+function battleWithCode() {
+  const code = prompt("請輸入對手的陣容代碼：");
+  if (!code) return;
+  try {
+    const enemyData = JSON.parse(decodeURIComponent(atob(code.trim())));
+    const myInfo = calculateTeamOverall();
+    const enemyOvr = enemyData.ovr || 80;
+
+    // 模擬 7 戰 4 勝季後賽制
+    let myWins = 0, enemyWins = 0;
+    while (myWins < 4 && enemyWins < 4) {
+      const prob = 0.5 + (myInfo.overall - enemyOvr) * 0.035;
+      if (Math.random() < prob) myWins++;
+      else enemyWins++;
+    }
+
+    const won = myWins > enemyWins;
+    if (won) {
+      confetti({ particleCount: 150 });
+      playSound('ur_ssr');
+      state.tickets += 2;
+      alert(`🎉 獲勝！你以 ${myWins} - ${enemyWins} 擊敗對手 (OVR ${enemyOvr})！獲得 2 🎟️ 獎勵！`);
+      renderAll();
+    } else {
+      alert(`💀 惜敗！對手 (OVR ${enemyOvr}) 以 ${enemyWins} - ${myWins} 拿下系列賽！`);
+    }
+  } catch (e) {
+    alert("❌ 陣容代碼無效或格式錯誤！");
+  }
+}
+
+    /* =====================================================
+       08. UI + STORAGE
+    ===================================================== */
+function renderPlayerCard(player, options = {}) {
+  const borderClass = player.isLegend 
+    ? 'silver-black-glow border-slate-200' 
+    : getRarityBorder(player.rarity);
+  
+  // 將球員名字轉碼，避免單引號 (如 Kobe Bryant ('10) 或 De'Andre Hunter) 造成語法中斷
+  const safeName = encodeURIComponent(player.name);
+
+  return `
+    <div draggable="true" 
+         ondragstart="handleCardDragStart(event, decodeURIComponent('${safeName}'))"
+         class="bg-slate-950 border ${borderClass} rounded-xl p-2.5 flex flex-col items-center justify-between text-center relative shadow cursor-grab active:cursor-grabbing hover:brightness-110 transition select-none">
+      
+      <!-- 頂部資訊：球隊與星級稀有度 -->
+      <div class="flex justify-between w-full text-[10px] font-mono text-slate-400 pointer-events-none">
+        <span class="font-bold">${player.team}</span>
+        <span class="font-black ${player.isLegend ? 'text-slate-200' : (player.rarity === 'UR' ? 'text-pink-400' : 'text-amber-400')}">
+          ${player.rarity} ★${player.stars || 1}
+        </span>
+      </div>
+      
+      <!-- 球員頭像 (pointer-events-none 避免干擾拖曳抓取) -->
+      <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-900 my-1 relative pointer-events-none">
+        <img src="${getPlayerImgUrl(player.nbaId)}" 
+             class="w-full h-full object-cover object-top" 
+             onerror="this.src='https://cdn.nba.com/headshots/nba/latest/1040x760/fallback.png'">
+        ${options.inLineup ? `<span class="absolute inset-0 bg-black/60 flex items-center justify-center text-[9px] font-bold text-amber-300">上陣中</span>` : ''}
+      </div>
+
+      <!-- 球員名稱與數值 -->
+      <div class="pointer-events-none w-full">
+        <p class="text-xs font-bold text-slate-200 truncate w-full">${player.name}</p>
+        <div class="text-[10px] font-mono text-slate-400 my-0.5">
+          OVR <span class="text-amber-400 font-bold">${player.ovr}</span> ｜ <span class="text-indigo-300 font-bold">${player.positions.join('/')}</span>
+        </div>
+      </div>
+
+      <!-- 拖曳提示與替補輔助按鈕 -->
+      <div class="w-full space-y-1 mt-1">
+        <div class="text-[9px] text-slate-400 bg-slate-900 border border-slate-800 rounded py-0.5 pointer-events-none">
+          ✋ 拖曳至先發 / 替補
+        </div>
+        <button onclick="addBench(state.inventory.find(x => x.name === decodeURIComponent('${safeName}')))" 
+                class="w-full py-0.5 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-300 rounded text-[9px] transition">
+          + 放入替補
+        </button>
+      </div>
+    </div>`;
+}
+
+function renderRoster() {
+  const positions = ['PG', 'SG', 'SF', 'PF', 'C'];
+  const starContainer = document.getElementById('rosterStarters');
+  const benchContainer = document.getElementById('rosterBench');
+
+  // ==========================================
+  // 1. 先發 5 人框渲染 (PG, SG, SF, PF, C)
+  // ==========================================
+  starContainer.innerHTML = positions.map(pos => {
+    const player = state.startingLineup[pos];
+
+    // --- 情況 A：該位置目前是「空的」---
+    if (!player) {
+      return `
+        <div ondragover="handleDragOver(event)" 
+             ondrop="handleStarterDrop(event, '${pos}')" 
+             class="bg-slate-950/80 border-2 border-dashed border-slate-700 hover:border-amber-400 rounded-2xl p-2.5 flex flex-col items-center justify-between text-center min-h-[150px] transition group cursor-pointer">
+          <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-900 text-amber-400">${pos}</span>
+          <div class="text-[10px] text-slate-500 group-hover:text-amber-300 transition my-auto flex flex-col items-center gap-1">
+            <span>📥</span>
+            <span>拖曳球員至此</span>
+          </div>
+          <span class="text-[8px] text-slate-600">空缺</span>
+        </div>`;
+    }
+
+    // --- 情況 B：該位置「已經有球員」---
+    // 檢查是否位置不合（錯位）
+    const isOOP = !player.positions.includes(pos);
+    // 錯位扣 5 分，符合則不扣分
+    const effectiveOvr = (player.ovr || player.baseOvr) - (isOOP ? 5 : 0);
+    // 錯位亮紅框警示，正常則套用原本的品質外框
+    const borderClass = isOOP 
+      ? 'border-2 border-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]' 
+      : (player.isLegend ? 'silver-black-glow border-slate-200' : getRarityBorder(player.rarity));
+
+    const safeName = encodeURIComponent(player.name);
+
+    return `
+      <div draggable="true" 
+           ondragstart="handleCardDragStart(event, decodeURIComponent('${safeName}'))"
+           ondragover="handleDragOver(event)" 
+           ondrop="handleStarterDrop(event, '${pos}')"
+           class="bg-slate-950/80 border ${borderClass} rounded-2xl p-2.5 flex flex-col items-center justify-between text-center min-h-[150px] cursor-grab active:cursor-grabbing relative select-none">
+        
+        <div class="flex justify-between w-full items-center">
+          <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-900 text-amber-400">${pos}</span>
+          ${isOOP ? '<span class="text-[8px] font-bold text-rose-300 bg-rose-950/90 border border-rose-800 px-1 rounded">-5 錯位</span>' : ''}
+        </div>
+
+        <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-900 my-1 pointer-events-none">
+          <img src="${getPlayerImgUrl(player.nbaId)}" class="w-full h-full object-cover object-top" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/1040x760/fallback.png'">
+        </div>
+
+        <div class="pointer-events-none w-full">
+          <p class="font-bold text-[10px] text-white truncate w-full">${player.name}</p>
+          <div class="text-[10px] font-mono font-bold ${isOOP ? 'text-rose-400' : 'text-amber-400'}">OVR ${effectiveOvr}</div>
+        </div>
+
+        <button onclick="removeStarter('${pos}')" class="text-[9px] text-rose-400 hover:text-rose-200 transition">卸下</button>
+      </div>`;
+  }).join('');
+
+  // ==========================================
+  // 2. 替補 6 人框渲染 (B1 ~ B6)
+  // ==========================================
+  benchContainer.innerHTML = state.benchLineup.map((player, idx) => {
+    // --- 情況 A：替補格是「空的」---
+    if (!player) {
+      return `
+        <div ondragover="handleDragOver(event)" 
+             ondrop="handleBenchDrop(event, ${idx})" 
+             class="bg-slate-950/60 border-2 border-dashed border-slate-800 hover:border-indigo-400 rounded-xl p-2 flex flex-col items-center justify-between text-center min-h-[130px] transition group cursor-pointer">
+          <span class="text-[9px] text-slate-500 font-mono">B${idx+1}</span>
+          <div class="text-[9px] text-slate-600 group-hover:text-indigo-300 transition my-auto">拖曳至此</div>
+          <span class="text-[8px] text-slate-700">空</span>
+        </div>`;
+    }
+
+    // --- 情況 B：替補格「已有球員」---
+    const safeName = encodeURIComponent(player.name);
+    const borderClass = player.isLegend ? 'silver-black-glow border-slate-200' : getRarityBorder(player.rarity);
+
+    return `
+      <div draggable="true" 
+           ondragstart="handleCardDragStart(event, decodeURIComponent('${safeName}'))"
+           ondragover="handleDragOver(event)" 
+           ondrop="handleBenchDrop(event, ${idx})"
+           class="bg-slate-950/60 border ${borderClass} rounded-xl p-2 flex flex-col items-center justify-between text-center min-h-[130px] cursor-grab active:cursor-grabbing select-none">
+        
+        <span class="text-[9px] text-slate-500 font-mono">B${idx+1}</span>
+        
+        <div class="w-8 h-8 rounded-full overflow-hidden pointer-events-none bg-slate-900">
+          <img src="${getPlayerImgUrl(player.nbaId)}" class="w-full h-full object-cover" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/1040x760/fallback.png'">
+        </div>
+        
+        <div class="pointer-events-none w-full">
+          <p class="text-[9px] text-slate-200 truncate w-full">${player.name}</p>
+          <p class="text-[8px] font-mono text-amber-400">OVR ${player.ovr}</p>
+        </div>
+        
+        <button onclick="removeBench(${idx})" class="text-[8px] text-rose-400 hover:text-rose-200 transition">卸下</button>
+      </div>`;
+  }).join('');
+
+  // ==========================================
+  // 3. 重新計算並更新上方化學反應與球隊總評徽章
+  // ==========================================
+  const teamInfo = calculateTeamOverall();
+  document.getElementById('chemistryBadge').innerText = `化學反應: +${teamInfo.chemistry} OVR`;
+  document.getElementById('teamOvrBadge').innerText = teamInfo.filled === 11 
+    ? `OVR ${teamInfo.overall}` 
+    : `OVR ${teamInfo.overall} (${teamInfo.filled}/11)`;
+}
+
+    function renderInventory() {
+      const container = document.getElementById('cardInventory');
+      const sorted = getSortedInventory();
+      document.getElementById('inventoryCount').innerText = `${state.inventory.length} 張`;
+      if (sorted.length === 0) {
+        container.innerHTML = `<p class="col-span-full text-center text-xs text-slate-500 py-8">背包無球員</p>`;
+        return;
+      }
+      container.innerHTML = sorted.map(p => renderPlayerCard(p, { inLineup: isPlayerInRoster(p.name) })).join('');
+    }
+
+    function renderGachaResult(times) {
+      const modal = document.getElementById('gachaModal');
+      const singleContainer = document.getElementById('gachaSingleContainer');
+      const rowTop = document.getElementById('gachaRowTop');
+      const rowBottom = document.getElementById('gachaRowBottom');
+
+      if (times === 1) {
+        singleContainer.classList.remove('hidden'); rowTop.classList.add('hidden'); rowBottom.classList.add('hidden');
+        const p = activeSessionCards[0].cardData;
+        singleContainer.innerHTML = `
+          <div class="perspective-1000 w-56 h-80 cursor-pointer select-none card-floating" onclick="flipCardDirect(0, 'single-card')">
+            <div id="single-card" class="w-full h-full relative transform-style-preserve-3d transition-transform duration-700">
+              <div class="absolute inset-0 backface-hidden rounded-2xl bg-slate-900 flex flex-col justify-center items-center p-4 gacha-unrevealed ${getGachaBackClass(p)}">
+                ${getNBALogoSVG()}
+              </div>
+              <div class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl border-2 ${getRarityBorder(p.rarity)} bg-slate-900 flex flex-col justify-between items-center p-4 text-center">
+                <div class="flex justify-between w-full text-xs font-mono font-bold"><span>${p.team}</span><span class="${p.rarity==='UR'?'text-pink-400':'text-amber-400'}">${p.rarity}</span></div>
+                <img src="${getPlayerImgUrl(p.nbaId)}" class="w-20 h-20 rounded-full object-cover object-top my-2 bg-slate-800" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/1040x760/fallback.png'">
+                <div class="font-bold text-sm text-white">${p.name}</div>
+                <div class="text-xs font-mono text-amber-300 font-bold">OVR ${p.ovr}</div>
+              </div>
+            </div>
+          </div>`;
+      } else {
+        singleContainer.classList.add('hidden'); rowTop.classList.remove('hidden'); rowBottom.classList.remove('hidden');
+        rowTop.innerHTML = activeSessionCards.slice(0, 5).map((item, idx) => `
+          <div class="perspective-1000 w-20 sm:w-28 h-32 sm:h-44 cursor-pointer select-none" onclick="flipCardDirect(${idx}, 'ten-${idx}')">
+            <div id="ten-${idx}" class="w-full h-full relative transform-style-preserve-3d transition-transform duration-700">
+              <div class="absolute inset-0 backface-hidden rounded-xl bg-slate-900 flex flex-col justify-center items-center p-2 gacha-unrevealed ${getGachaBackClass(item.cardData)}">${getNBALogoSVG()}</div>
+              <div class="absolute inset-0 backface-hidden rotate-y-180 rounded-xl border-2 ${getRarityBorder(item.cardData.rarity)} bg-slate-900 flex flex-col justify-between items-center p-2 text-center">
+                <span class="text-[9px] font-mono">${item.cardData.rarity}</span>
+                <img src="${getPlayerImgUrl(item.cardData.nbaId)}" class="w-10 h-10 rounded-full object-cover object-top bg-slate-800" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/1040x760/fallback.png'">
+                <p class="text-[10px] font-bold truncate w-full">${item.cardData.name}</p>
+                <span class="text-[9px] font-mono text-amber-300 font-bold">${item.cardData.ovr}</span>
+              </div>
+            </div>
+          </div>`).join('');
+
+        rowBottom.innerHTML = activeSessionCards.slice(5, 10).map((item, idx) => `
+          <div class="perspective-1000 w-20 sm:w-28 h-32 sm:h-44 cursor-pointer select-none" onclick="flipCardDirect(${idx+5}, 'ten-${idx+5}')">
+            <div id="ten-${idx+5}" class="w-full h-full relative transform-style-preserve-3d transition-transform duration-700">
+              <div class="absolute inset-0 backface-hidden rounded-xl bg-slate-900 flex flex-col justify-center items-center p-2 gacha-unrevealed ${getGachaBackClass(item.cardData)}">${getNBALogoSVG()}</div>
+              <div class="absolute inset-0 backface-hidden rotate-y-180 rounded-xl border-2 ${getRarityBorder(item.cardData.rarity)} bg-slate-900 flex flex-col justify-between items-center p-2 text-center">
+                <span class="text-[9px] font-mono">${item.cardData.rarity}</span>
+                <img src="${getPlayerImgUrl(item.cardData.nbaId)}" class="w-10 h-10 rounded-full object-cover object-top bg-slate-800" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/1040x760/fallback.png'">
+                <p class="text-[10px] font-bold truncate w-full">${item.cardData.name}</p>
+                <span class="text-[9px] font-mono text-amber-300 font-bold">${item.cardData.ovr}</span>
+              </div>
+            </div>
+          </div>`).join('');
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function renderVocabList() {
+      const container = document.getElementById('vocabListContainer');
+      document.getElementById('vocabTotalBadge').innerText = `${state.toeic.vocabList.length}`;
+      if (state.toeic.vocabList.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 py-4 text-center">單字庫為空</p>`;
+        return;
+      }
+      container.innerHTML = state.toeic.vocabList.map(v => `
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex justify-between items-center text-xs">
+          <div>
+            <span class="font-bold text-amber-400">${v.word}</span>
+            <span class="text-slate-300 ml-2">${v.meaning}</span>
+            <span class="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-indigo-300 ml-2">箱${v.box || 1}</span>
+          </div>
+          <button onclick="deleteWord(${v.id})" class="text-slate-500 hover:text-rose-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+        </div>`).join('');
+    }
+
+    function renderSeasonTab() {
+      const today = getTodayString();
+      const btn = document.getElementById('simSeasonBtn');
+      const playoffBtn = document.getElementById('playoffBtn');
+      const recordText = document.getElementById('seasonRecordText');
+      const streakBadge = document.getElementById('seasonStreakBadge');
+      const rankText = document.getElementById('seasonRankText');
+      const boxScoreSection = document.getElementById('boxScoreSection');
+      const boxScoreList = document.getElementById('boxScoreLeadersList');
+      const grid = document.getElementById('gameGrid');
+
+      if (grid.children.length === 0) {
+        grid.innerHTML = Array.from({ length: 82 }, (_, i) => `<div id="game-cell-${i+1}" class="h-6 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-[10px] text-slate-600">${i+1}</div>`).join('');
+      }
+
+      if (state.season.lastSimWins >= 42) playoffBtn.classList.remove('hidden');
+      else playoffBtn.classList.add('hidden');
+
+      if (state.season.lastBoxScores && state.season.lastBoxScores.length > 0) {
+        boxScoreSection.classList.remove('hidden');
+        boxScoreList.innerHTML = state.season.lastBoxScores.map(b => `
+          <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
+            <span class="text-slate-400 text-[10px] block">${b.title}</span>
+            <span class="text-amber-400 font-bold truncate block">${b.player}</span>
+            <span class="text-slate-300 text-[11px]">${b.stat}</span>
+          </div>`).join('');
+      } else {
+        boxScoreSection.classList.add('hidden');
+      }
+
+      if (!state.isAdmin && state.season.lastSimDate === today && state.season.lastSimRecord) {
+        btn.disabled = true;
+        btn.innerText = "今日例行賽已完成";
+        recordText.innerText = state.season.lastSimRecord;
+        streakBadge.innerText = `最長連勝: ${state.season.lastSimStreak}場`;
+        rankText.innerText = state.season.lastSimWins >= 60 ? "分區第 1 種子" : (state.season.lastSimWins >= 50 ? "分區第 3-4 種子" : "季後賽名單");
+      }
+    }
+
+    function saveGame() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadGame() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch (e) { return null; }
+    }
+
+    function resetGame() {
+      if (!confirm("⚠️ 確定要重置所有遊戲與存檔資料嗎？")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.clear();
+      window.location.reload();
+    }
+
+    function renderAll() {
+      const adminBadge = document.getElementById('adminBadge');
+      if (state.isAdmin) {
+        adminBadge.classList.remove('hidden');
+        document.getElementById('ticketCount').innerText = "無限";
+        document.getElementById('seasonLimitTip').innerText = "⚡ ADMIN 模式：82 場模擬無次數限制";
+      } else {
+        adminBadge.classList.add('hidden');
+        document.getElementById('ticketCount').innerText = state.tickets;
+        document.getElementById('seasonLimitTip').innerText = "每日限挑戰 1 次 ｜ 82-GAME SIMULATION";
+      }
+
+      document.getElementById('streakCount').innerText = state.streak;
+      document.getElementById('scoutPointsCount').innerText = state.scoutPoints;
+      document.getElementById('sortSelector').value = state.currentInventorySort;
+
+      saveGame();
+      renderRoster();
+      renderInventory();
+      renderVocabList();
+      updateQuizCard();
+      renderSeasonTab();
+      lucide.createIcons();
+    }
+function changeSortField(field) {
+  state.currentInventorySort = field;
+  renderAll();
+}
+
+function toggleSortOrder() {
+const current = state.inventorySortOrder || 'desc';
+  state.inventorySortOrder = (current === 'desc') ? 'asc' : 'desc';
+  
+  // 即時更新按鈕文字，避免等待或被中斷
+  const btn = document.getElementById('sortOrderBtn');
+  if (btn) {
+    btn.innerText = state.inventorySortOrder === 'asc' ? '↑ 升序' : '↓ 降序';
+  }
+
+  renderAll();
+}
+
+function changeFilter(type, value) {
+  if (!state.inventoryFilters) {
+    state.inventoryFilters = { position: 'ALL', team: 'ALL', rarity: 'ALL' };
+  }
+  if (type === 'pos') state.inventoryFilters.position = value;
+  if (type === 'team') state.inventoryFilters.team = value;
+  if (type === 'rarity') state.inventoryFilters.rarity = value;
+  renderAll();
+}
+if (document.getElementById('sortSelector')) document.getElementById('sortSelector').value = state.currentInventorySort;
+if (document.getElementById('sortOrderBtn')) {
+  document.getElementById('sortOrderBtn').innerText = state.inventorySortOrder === 'asc' ? '↑ 升序' : '↓ 降序';
+}
+if (document.getElementById('filterPosition') && state.inventoryFilters) {
+  document.getElementById('filterPosition').value = state.inventoryFilters.position || 'ALL';
+}
+if (document.getElementById('filterRarity') && state.inventoryFilters) {
+  document.getElementById('filterRarity').value = state.inventoryFilters.rarity || 'ALL';
+}
+
+// 動態填入 30 隊選項 (若尚未填入)
+const teamSelect = document.getElementById('filterTeam');
+if (teamSelect && teamSelect.options.length <= 1) {
+  ALL_30_TEAMS.forEach(team => {
+    const opt = document.createElement('option');
+    opt.value = team;
+    opt.innerText = team;
+    teamSelect.appendChild(opt);
+  });
+  if (state.inventoryFilters) teamSelect.value = state.inventoryFilters.team || 'ALL';
+}
+    /* =====================================================
+       輔助介面切換、單字與彈窗動作
+    ===================================================== */
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabKey}`).classList.remove('hidden');
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        const isCurrent = btn.getAttribute('data-target') === tabKey;
+        btn.className = `nav-tab flex flex-col items-center gap-1 text-[10px] ${isCurrent ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'}`;
+      });
+      lucide.createIcons();
+    }
+
+    function changeInventorySort(val) {
+      state.currentInventorySort = val;
+      renderAll();
+    }
+
+    function openUpgradeModal() {
+      const container = document.getElementById('upgradeListContainer');
+      const groups = {};
+      state.inventory.forEach(card => {
+        const star = card.stars || 1;
+        const key = `${card.name}__${star}`;
+        if (!groups[key]) groups[key] = { sample: card, star, count: 0 };
+        groups[key].count++;
+      });
+
+      const upgradeGroups = Object.values(groups).sort((a, b) => {
+        const rarityRank = { UR: 5, SSR: 4, SR: 3, R: 2, N: 1 };
+        return (rarityRank[b.sample.rarity] || 0) - (rarityRank[a.sample.rarity] || 0) || b.star - a.star || a.sample.name.localeCompare(b.sample.name);
+      });
+
+      if (upgradeGroups.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 py-4 text-center">無球員</p>`;
+        document.getElementById('upgradeModal').classList.remove('hidden');
+        return;
+      }
+
+      container.innerHTML = upgradeGroups.map(g => {
+        const p = g.sample;
+        const canUp = g.count >= 2;
+        const safeName = p.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        return `
+          <div class="bg-slate-950 border ${p.isLegend ? 'silver-black-glow border-slate-200' : getRarityBorder(p.rarity)} rounded-xl p-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-900"><img src="${getPlayerImgUrl(p.nbaId)}" class="w-full h-full object-cover object-top"></div>
+              <div><h4 class="font-bold text-xs text-white">${p.name}</h4><div class="text-[10px]">★${g.star} → ★${g.star + 1} ・ 擁有:${g.count}/2</div></div>
+            </div>
+            <button onclick="upgradePlayerStar('${safeName}', ${g.star})" class="${canUp ? 'bg-amber-500 text-black font-bold' : 'bg-slate-800 text-slate-500 cursor-not-allowed'} px-3 py-1 rounded text-xs">${canUp ? '升星' : '不足'}</button>
+          </div>`;
+      }).join('');
+
+      document.getElementById('upgradeModal').classList.remove('hidden');
+    }
+    function closeUpgradeModal() { document.getElementById('upgradeModal').classList.add('hidden'); }
+
+    function openMarketModal() {
+      const container = document.getElementById('marketSellListContainer');
+      const uniqueCards = getSortedInventory();
+      const pointsMap = { 'UR': 100, 'SSR': 50, 'SR': 20, 'R': 10, 'N': 5 };
+
+      container.innerHTML = uniqueCards.map(p => `
+        <div class="bg-slate-950 border ${p.isLegend ? 'silver-black-glow border-slate-200' : getRarityBorder(p.rarity)} rounded-xl p-2 flex flex-col items-center justify-between text-center">
+          <p class="text-xs font-bold text-white truncate w-full">${p.name}</p>
+          <div class="text-[10px] text-pink-400 font-bold my-1">+${pointsMap[p.rarity] || 5} 💎</div>
+          <button onclick="convertCard('${p.name}', ${p.stars || 1})" class="w-full py-1 bg-pink-950 text-pink-300 rounded text-[10px]">轉化</button>
+        </div>`).join('');
+      document.getElementById('marketModal').classList.remove('hidden');
+    }
+    function closeMarketModal() { document.getElementById('marketModal').classList.add('hidden'); }
+
+    function buyKobeLegend() {
+      if (state.scoutPoints < 2400) { alert("選秀碎片不足 2400 點！"); return; }
+      state.scoutPoints -= 2400;
+      const kobeCard = {
+        name: "Kobe Bryant ('10)", team: "LAL", positions: ["SG", "SF"],
+        baseOvr: 99, ovr: 99, rarity: "UR", nbaId: 977, stars: 1, acquiredAt: Date.now(), isLegend: true
+      };
+      state.inventory.unshift(kobeCard);
+      confetti({ particleCount: 200 });
+      playSound('ur_ssr');
+      alert("🏆 成功兌換傳奇 Kobe Bryant ('10)！");
+      renderAll();
+      openMarketModal();
+    }
+
+    function convertCard(name, star) {
+      const pointsMap = { 'UR': 100, 'SSR': 50, 'SR': 20, 'R': 10, 'N': 5 };
+      const idx = state.inventory.findIndex(p => p.name === name && (p.stars || 1) === star);
+      if (idx === -1) return;
+      const target = state.inventory[idx];
+      const val = pointsMap[target.rarity] || 5;
+      state.inventory.splice(idx, 1);
+      state.scoutPoints += val;
+      alert(`✅ 獲得 ${val} 點碎片！`);
+      renderAll();
+      openMarketModal();
+    }
+
+    function buyTicketWithGems() {
+      if (state.scoutPoints < 50) { alert("碎片不足 50 點！"); return; }
+      state.scoutPoints -= 50; state.tickets += 1;
+      alert("🎉 兌換成功！");
+      renderAll();
+    }
+
+    function openBinderModal() {
+      const container = document.getElementById('binderTeamGrid');
+      container.innerHTML = ALL_30_TEAMS.map(teamCode => {
+        const teamPool = TEAM_DATA[teamCode] || [];
+        const owned = state.inventory.filter(p => p.team === teamCode);
+        const hasChemistry = owned.length >= 3;
+        const isMastered = owned.length >= 15;
+        const hasClaimed = state.claimedTeamRewards.includes(teamCode);
+
+        return `
+          <div class="bg-slate-900 border ${isMastered ? 'border-amber-400 gold-glow' : (hasChemistry ? 'border-amber-400/70' : 'border-slate-800')} rounded-2xl p-3 flex flex-col justify-between text-center relative">
+            <div class="flex justify-between items-center text-[10px] font-mono border-b border-slate-800/80 pb-1.5 mb-2">
+              <span class="font-black text-amber-400 text-sm tracking-wider">${teamCode}</span>
+              <span class="${isMastered ? 'text-amber-300 font-bold' : (hasChemistry ? 'text-amber-400' : 'text-slate-400')}">${owned.length} / 15 ${isMastered ? '👑' : ''}</span>
+            </div>
+            <div class="grid grid-cols-5 gap-1.5 my-1">
+              ${teamPool.map(player => {
+                const userHas = state.inventory.some(p => p.name === player.name);
+                return `<div class="w-8 h-8 rounded-full overflow-hidden border ${userHas ? 'border-amber-400 opacity-100' : 'border-slate-800 opacity-20 grayscale'} bg-slate-950 mx-auto"><img src="${getPlayerImgUrl(player.id)}" class="w-full h-full object-cover object-top" onerror="this.src='https://cdn.nba.com/headshots/nba/latest/1040x760/fallback.png'"></div>`;
+              }).join('')}
+            </div>
+            <div class="mt-2 pt-1 border-t border-slate-800/50 flex justify-between items-center text-[9px] font-mono">
+              <span class="${hasChemistry ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${hasChemistry ? '🔥 化學反應 +1' : '未達 3 人'}</span>
+              ${isMastered ? `<button onclick="claimTeamMasterReward('${teamCode}')" class="${hasClaimed ? 'bg-slate-800 text-slate-500' : 'bg-amber-500 text-black font-bold'} px-2 py-0.5 rounded transition">${hasClaimed ? '已領取' : '制霸領10🎟️'}</button>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+      document.getElementById('binderModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    function closeBinderModal() { document.getElementById('binderModal').classList.add('hidden'); }
+
+    function claimTeamMasterReward(teamCode) {
+      if (state.claimedTeamRewards.includes(teamCode)) return;
+      state.claimedTeamRewards.push(teamCode);
+      state.tickets += 10;
+      confetti({ particleCount: 150 });
+      alert(`🏆 達成【${teamCode} 隊史制霸】成就，獲得 10 張抽卡券！`);
+      renderAll();
+      openBinderModal();
+    }
+
+    function openPlayoffBracketModal() {
+      initPlayoffTeams();
+      renderPlayoffBracket();
+      document.getElementById('playoffBracketModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    function closePlayoffBracketModal() { document.getElementById('playoffBracketModal').classList.add('hidden'); }
+
+    function openRedeemModal() { document.getElementById('redeemModal').classList.remove('hidden'); document.getElementById('redeemInput').value = ''; }
+    function closeRedeemModal() { document.getElementById('redeemModal').classList.add('hidden'); }
+    function submitRedeemCode() {
+      const input = document.getElementById('redeemInput').value.trim().toLowerCase();
+      if (!input) return;
+      if (input === '082431') {
+        state.isAdmin = true; state.tickets = 999999; state.scoutPoints = 999999;
+	adminUnlockAllPlayers();
+        closeRedeemModal();
+        confetti({ particleCount: 200 });
+        alert("⚡ 管理員測試權限已啟用！");
+        renderAll();
+        return;
+      }
+      if (input === 'songray16') {
+        state.tickets += 100;
+        state.redeemedCodes.push('songray16');
+        closeRedeemModal();
+        confetti({ particleCount: 150 });
+        alert("🎉 獲得 100 張抽卡券！");
+        renderAll();
+      } else {
+        alert("❌ 兌換碼無效！");
+      }
+    }
+
+    // 番茄鐘與單字卡
+    function togglePomodoroTimer() {
+      const btn = document.getElementById('timerToggleBtn');
+      if (isPomodoroRunning) {
+        clearInterval(pomodoroInterval);
+        isPomodoroRunning = false;
+        btn.innerText = "繼續專注";
+      } else {
+        isPomodoroRunning = true;
+        btn.innerText = "暫停倒數";
+        pomodoroInterval = setInterval(() => {
+          if (pomodoroSecondsLeft <= 0) {
+            clearInterval(pomodoroInterval);
+            isPomodoroRunning = false;
+            pomodoroSecondsLeft = 25 * 60;
+            updateTimerDisplay();
+            btn.innerText = "開始專注";
+            state.toeic.totalListening += 25;
+            state.tickets += 1;
+            confetti({ particleCount: 100, spread: 80 });
+            alert("🎉 恭喜完成 25 分鐘多益專注！已增加 25 分鐘時長，並獲得 1 🎟️ 抽卡券！");
+            renderAll();
+          } else {
+            pomodoroSecondsLeft--;
+            updateTimerDisplay();
+          }
+        }, 1000);
+      }
+    }
+    function resetPomodoroTimer() {
+      clearInterval(pomodoroInterval);
+      isPomodoroRunning = false;
+      pomodoroSecondsLeft = 25 * 60;
+      updateTimerDisplay();
+      document.getElementById('timerToggleBtn').innerText = "開始專注";
+    }
+    function updateTimerDisplay() {
+      const mins = Math.floor(pomodoroSecondsLeft / 60).toString().padStart(2, '0');
+      const secs = (pomodoroSecondsLeft % 60).toString().padStart(2, '0');
+      document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+    }
+
+    function changeVocabBox(box) {
+      state.toeic.selectedBoxFilter = box;
+      state.toeic.currentQuizIndex = 0;
+      updateQuizCard();
+    }
+    function getFilteredVocab() {
+      if (state.toeic.selectedBoxFilter === 'all') return state.toeic.vocabList;
+      const bNum = parseInt(state.toeic.selectedBoxFilter.replace('box', ''));
+      return state.toeic.vocabList.filter(v => (v.box || 1) === bNum);
+    }
+    function getCurrentQuizWord() {
+      const list = getFilteredVocab();
+      if (list.length === 0) return null;
+      return list[state.toeic.currentQuizIndex % list.length];
+    }
+    function updateQuizCard() {
+      const item = getCurrentQuizWord();
+      if (item) {
+        document.getElementById('flashWord').innerText = item.word;
+        document.getElementById('flashMeaning').innerText = `[箱${item.box || 1}・${item.category || 'General'}] ${item.meaning}`;
+        document.getElementById('flashExample').innerText = item.example ? `"${item.example}"` : "";
+        document.getElementById('spellingMeaning').innerText = `[箱${item.box || 1}・${item.category || 'General'}] ${item.meaning}`;
+        document.getElementById('spellingMasked').innerText = item.word.split('').map((c, i) => (i === 0 || i === item.word.length - 1 || c === ' ') ? c : '_').join(' ');
+        document.getElementById('spellingInput').value = '';
+      } else {
+        document.getElementById('flashWord').innerText = "此複習箱暫無單字";
+        document.getElementById('flashMeaning').innerText = "";
+        document.getElementById('flashExample').innerText = "";
+      }
+    }
+    function flipCard() {
+      if (state.toeic.isSpellingMode || !getCurrentQuizWord()) return;
+      isFlipped = !isFlipped;
+      document.getElementById('flashMeaning').classList.toggle('hidden', !isFlipped);
+      document.getElementById('flashExample').classList.toggle('hidden', !isFlipped);
+    }
+    function checkSpellingAnswer() {
+      const item = getCurrentQuizWord();
+      if (!item) return;
+      const ans = document.getElementById('spellingInput').value.trim().toLowerCase();
+      if (ans === item.word.toLowerCase()) {
+        confetti({ particleCount: 30, spread: 50 });
+        alert("🎉 拼字完全正確！");
+        answerQuiz(true);
+      } else {
+        alert(`❌ 答錯囉！正確是：${item.word}`);
+        answerQuiz(false);
+      }
+    }
+    function answerQuiz(isCorrect) {
+      const item = getCurrentQuizWord();
+      if (!item) return;
+      if (isCorrect) {
+        item.box = Math.min((item.box || 1) + 1, 3);
+        state.toeic.quizStreak++;
+      } else {
+        item.box = 1;
+        state.toeic.quizStreak = 0;
+      }
+      document.getElementById('quizStreakIndicator').innerText = `連對: ${state.toeic.quizStreak}`;
+      if (state.toeic.quizStreak >= 5) {
+        document.getElementById('onFireBadge').classList.remove('hidden');
+        confetti({ particleCount: 60, spread: 70 });
+        playSound('ur_ssr');
+      }
+      isFlipped = false;
+      document.getElementById('flashMeaning').classList.add('hidden');
+      document.getElementById('flashExample').classList.add('hidden');
+      state.toeic.currentQuizIndex++;
+      renderAll();
+    }
+    function speakWord(e) {
+      if (e) e.stopPropagation();
+      const item = getCurrentQuizWord();
+      if (!item) return;
+      const utterance = new SpeechSynthesisUtterance(item.word);
+      utterance.lang = 'en-US';
+      window.speechSynthesis.speak(utterance);
+    }
+    function toggleQuizMode() {
+      state.toeic.isSpellingMode = !state.toeic.isSpellingMode;
+      document.getElementById('quizModeBtn').innerText = `模式: ${state.toeic.isSpellingMode ? '拼字填空' : '翻卡'}`;
+      document.getElementById('flashcardContent').classList.toggle('hidden', state.toeic.isSpellingMode);
+      document.getElementById('spellingContent').classList.toggle('hidden', !state.toeic.isSpellingMode);
+      updateQuizCard();
+    }
+    function addWord(e) {
+      e.preventDefault();
+      const word = document.getElementById('inputWord').value.trim();
+      const meaning = document.getElementById('inputMeaning').value.trim();
+      const category = document.getElementById('inputCategory').value;
+      const example = document.getElementById('inputExample').value.trim();
+      if (!word || !meaning) return;
+      state.toeic.vocabList.unshift({ id: Date.now(), word, meaning, category, example, box: 1 });
+      document.getElementById('addWordForm').reset();
+      renderAll();
+    }
+    function deleteWord(id) {
+      state.toeic.vocabList = state.toeic.vocabList.filter(v => v.id !== id);
+      renderAll();
+    }
+    function addFiveRandomWords() {
+      const extra = [
+        { word: "revenue", meaning: "營收、稅收", category: "Finance", example: "Quarterly revenue exceeded expectations." },
+        { word: "merger", meaning: "合併", category: "Finance", example: "The antitrust board approved the merger." },
+        { word: "benchmark", meaning: "基準、標竿", category: "HR", example: "We set a new performance benchmark." },
+        { word: "logistics", meaning: "物流配送", category: "Logistics", example: "Global logistics costs have normalized." },
+        { word: "endorse", meaning: "代言、支持", category: "HR", example: "Athletes endorse flagship basketball shoes." }
+      ];
+      extra.forEach(w => {
+        if (!state.toeic.vocabList.some(v => v.word.toLowerCase() === w.word.toLowerCase())) {
+          state.toeic.vocabList.unshift({ id: Date.now() + Math.random(), ...w, box: 1 });
+        }
+      });
+      confetti({ particleCount: 50 });
+      alert("🎉 成功匯入多益單字！");
+      renderAll();
+    }
+    function submitStudyLog() {
+      if (!state.isAdmin) state.tickets += 1;
+      state.streak += 1;
+      alert("✅ 打卡完成，抽卡券 +1！");
+      renderAll();
+    }
+
+    // 啟動渲染
+    renderAll();
+  </script>
+</body>
+</html>
